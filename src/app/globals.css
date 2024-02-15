@@ -31,3 +31,10 @@ body {
     text-wrap: balance;
   }
 }
+
+p.ellipsis {
+    text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 600px;
+      overflow: hidden;
+}
