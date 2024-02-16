@@ -38,3 +38,18 @@ p.ellipsis {
       width: 600px;
       overflow: hidden;
 }
+
+@layer components {
+    .btn {
+        @apply bg-blue-300 font-bold py-2 px-4 rounded;
+    }
+    .btn:hover {
+        @apply bg-blue-500 text-white;
+    }
+    .btn-red {
+        @apply bg-red-300 text-white;
+    }
+    .btn-red:hover {
+        @apply bg-red-700;
+    }
+}
