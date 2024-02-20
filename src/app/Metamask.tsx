@@ -49,6 +49,15 @@ class Metamask extends Component {
       }
     }
 
+  async decryptMessage(msg: string, key: string): string {
+    if (this.state.signer) {
+        const a_msg = this.state.signer.hexKeyToArray(msg);
+        const a_key = this.state.signer.hexKeyToArray(key);
+        const decrypted = await decrypt(a_msg, a_key);
+        console.log(decrypted)
+    }
+  }
+
   async encryptMessage() {
     if (this.state.signer) {
         const msg = await this.state.signer.encryptOriginalTx(
@@ -58,11 +67,9 @@ class Metamask extends Component {
             value: 1
           }
         )
-      console.log(msg[0]);
+      console.log("encrypted", msg[0]);
       const msgHex = Buffer.from(msg[0]).toString('hex');
-      // const msgHex = msg[0].map(x => x.toString(16).padStart(2, '0'))
-      // .join('');
-      console.log(msgHex);
+      console.log("encryptedHex", msgHex);
       this.setState({msg: msg, msgHex: msgHex})
     }
   }
@@ -96,8 +103,14 @@ class Metamask extends Component {
             <div className="mb-6">
               <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Encrypted Message:</label>
               <span type="text" id="large-input" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words">{this.state.msgHex}</span>
+            <form name="decryption">
+              <input onChange={(event) => this.decryptMessage(this.state.msgHex, event.target.value)} type="text" name="key" id="key" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words">{this.state.decryptionKey}</input>
+            </form>
             </div>
          )
+      }
+      if (keyInput) {
+        console.log(keyInput)
       }
   }
 

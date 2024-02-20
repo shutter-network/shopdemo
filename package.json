@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@shutter-network/shutter-crypto": "file:../rolling-shutter/js/shutter-crypto/shutter-network-shutter-crypto-2.0.0.tgz",
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
