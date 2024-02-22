@@ -1,18 +1,26 @@
 import { ethers, Wallet, BrowserProvider } from "shutter-sdk";
 
 export async function fund(target_address: string) {
-    const FAUCET_ADDRESS = "0x7F6E15098861Aac5C88B49e7353bc3Ddec9E89cF";
-    const FAUCET_PK = "0xaf44e03c2baca827b38e20e266d982fdd5ec2c7dd9c4484442ff8706e80cd3b8"
+    const FAUCET_ADDRESS = "0x2a0D87eA3a9E0ca33Ddd4a62C33878b58152effE";
+    const FAUCET_PK = "0x83b6122c38b58e37ce42adafd43e7b402e19f4413ce6de9dc9219f50d71c3768"
     console.log("faucet funding", target_address);
     if (window.ethereum) {
+        console.log("Getting provider")
         const faucetprovider = new BrowserProvider(window.ethereum);
+        console.log("Getting signer")
         const faucetsigner = new Wallet(FAUCET_PK, faucetprovider);
+        window.faucetsigner = faucetsigner
+        console.log("sending tx")
         let txresponse = await faucetsigner.sendTransaction({from: FAUCET_ADDRESS, to: target_address, value: ethers.parseEther('1.1')}); 
+        console.log(txresponse.hash)
         faucetprovider.waitForTransaction(txresponse.hash)
         .then((receipt) => {
+            console.log("receipt", receipt)
         })
         .catch((error) => {
             console.log(error)
         })
+    } else {
+        throw("Ethereum not available")
     }
 }
