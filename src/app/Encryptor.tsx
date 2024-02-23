@@ -9,8 +9,7 @@ class Encryptor extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            position: 0,
-            text: "This text has gotta go, you won't see it any longer :)",
+            text: "Foo",
             encrypted: false
         };
     }
@@ -21,11 +20,13 @@ class Encryptor extends Component {
             await delay(200);
             let chars = this.state.text.split('')
             chars[i] = '*'
-            this.setState({ 
+            this.setState({
                 text: chars.join(''),
-                encrypted: true
             })
         }
+        this.setState({ 
+            encrypted: true
+        })
     }
 
     renderEncryptor() {
