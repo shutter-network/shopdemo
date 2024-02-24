@@ -1,3 +1,25 @@
+# Shutter Optimism Demo app
+
+## Install
+Since the SDK is so far in a private git repository, you need a running `ssh-agent`, e.g.
+```
+eval `ssh-agent -s`
+ssh-add [optional path to privatekey]
+```
+To install run
+```
+npm install
+```
+To run it
+```
+npm run dev
+```
+
+## Devnet notes
+
+Once you clicked on `Connect Metamask`, if you see an empty `EonKey` you most likely have to restart the devnet.
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
