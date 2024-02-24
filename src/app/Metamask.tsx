@@ -18,6 +18,7 @@ class Metamask extends Component {
                 const accounts = await provider.send("eth_requestAccounts", []);
             const selectedAddress = accounts[0];
             let balance = await provider.getBalance(selectedAddress);
+                // FIXME: for some reason the auto faucet stopped working
                 if (false) {
                 try {
                     await fund(selectedAddress);
@@ -73,7 +74,7 @@ class Metamask extends Component {
         if (this.state.signer) {
             let tx_request = {
                         from: this.state.selectedAddress,
-                        to: "0x16263646566676869606a6b6c6d6e6f666666666",
+                        to: "0x6666666666666666666666666666666666666666",
                         value: 12
             }
             // const send = await this.state.signer._sendTransactionTrace(tx_request, 25)

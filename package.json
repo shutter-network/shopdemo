@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@shutter-network/shutter-crypto": "^2.0.0",
+    "shutter-sdk": "git+ssh://git@github.com/shutter-network/shutter-sdk.git#demo2",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18",
-    "shutter-sdk": "file:../shutter-sdk"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
