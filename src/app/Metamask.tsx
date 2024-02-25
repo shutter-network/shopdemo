@@ -106,6 +106,7 @@ class Metamask extends Component {
         from: this.state.selectedAddress,
         to: txstate.txto,
         value: txstate.txvalue,
+        data: txstate.txdata,
       };
       await this.setState({ msgHex: JSON.stringify(tx_request) });
       await this.runEncryptor();
