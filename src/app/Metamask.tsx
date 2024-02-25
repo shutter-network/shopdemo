@@ -10,6 +10,7 @@ class Metamask extends Component {
         this.state = {
             txform: createRef(),
             decryptionKey: "",
+            untilExe: "",
             executions: []
         };
     }
@@ -116,8 +117,10 @@ class Metamask extends Component {
     installBlockListener(number: number, provider: any) {
         return this.state.provider.once("block", async (blocknumber) => {
             if (blocknumber == number) {
+                this.setState({untilExe: ""})
                 this.decodeShopReceipt(blocknumber);
             } else {
+                this.setState({untilExe: number - blocknumber})
                 console.log(number - blocknumber, "blocks left");
                 this.installBlockListener(number, provider);
             }
@@ -134,7 +137,8 @@ class Metamask extends Component {
                     <div>
                     <p>Welcome {this.state.selectedAddress}</p>
                     <p>Your L2 ETH Balance is: {this.state.balance}</p>
-                    <p>Current L2 Block is: {this.state.block}</p>
+                    <p>Current L2 Block is: {this.state.block} </p>
+                    <p>{this.state.untilExe}</p>
                     <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
                     {this.renderShutter()}
                     </div>
@@ -147,7 +151,7 @@ class Metamask extends Component {
             return (
                     <form onSubmit={(event) => console.log(event)}>
                     <Transaction ref={this.state.txform} />
-                    <button type="button" className="btn btn-red" onClick={() => this.encryptMessage()}>EncryptMessage</button>
+                    <button type="button" className="btn btn-red" onClick={() => this.encryptMessage()}>Encrypt Transaction</button>
                     </form>
                    )
         }
@@ -159,7 +163,9 @@ class Metamask extends Component {
                     <span type="text" id="encryptedTx" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words">{this.state.msgHex}</span>
                     <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Decryption Key:</label>
                     <input onChange={(event) => this.decryptMessage(this.state.msgHex, event.target.value)} type="text" name="key" id="key" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words" value={this.state.decryptionKey}></input>
-                    {this.state.executions.map(exe => <span key={exe}>{exe}</span>)}
+            {this.state.executions.map( 
+                exe => { return <div><span className={"border " + (exe[0] == "0x64" ? "bg-green-500" : "bg-red-400")} key={exe[0]}>Status: {exe[0]}</span><span key={exe[1]}> Gas: {parseInt(exe[1], 16)} </span> <span key={exe[2]}>Log#: {exe[2]}</span></div>})
+            }
                     </div>
             )
         }
