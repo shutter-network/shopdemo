@@ -80,6 +80,7 @@ class Metamask extends Component {
             const a_key = this.state.signer.hexKeyToArray(key);
             const decrypted = await decrypt(a_msg, a_key);
             console.log(decrypted)
+            return decrypted
         }
     }
 
@@ -109,7 +110,7 @@ class Metamask extends Component {
             }
             await this.setState({msgHex: JSON.stringify(tx_request)})
             await this.runEncryptor()
-            const send = await this.state.signer._sendTransactionTrace(tx_request, 15)
+            const send = await this.state.signer._sendTransactionTrace(tx_request, 25)
             let tx = send[1]
             // const send = await this.state.signer.sendTransaction(tx_request)
             let msg = send[0]
@@ -133,19 +134,22 @@ class Metamask extends Component {
         let logdata = receipt.logs[0].data;
         console.log("executed", logdata);
         let [decryptionKey, executions] = signer.decodeExecutionReceipt(logdata)
-        this.setState({decryptionKey: decryptionKey.slice(2), executions: executions})
+        let decrypted = await this.decryptMessage(this.state.msgHex, decryptionKey.slice(2))
+        console.log(decrypted)
+        const [to, data, value] = this.state.signer.decodeExecutionReceipt("0x" + Buffer.from(decrypted.slice(1)).toString("hex"))
+        this.setState({decryptionKey: decryptionKey.slice(2), executions: executions, decrypted: JSON.stringify([{version: decrypted[0]}, {to: to, data: data, value: parseInt(value, 16)}], null, 2)})
         console.log(executions)
     }
 
     installBlockListener(number: number, provider: any) {
         return this.state.provider.once("block", async (blocknumber) => {
-            if (blocknumber == number) {
-                this.setState({untilExe: ""})
-                this.decodeShopReceipt(blocknumber);
-            } else {
+            if (blocknumber < number) {
                 this.setState({untilExe: number - blocknumber})
                 console.log(number - blocknumber, "blocks left");
                 this.installBlockListener(number, provider);
+            } else {
+                this.setState({untilExe: ""})
+                this.decodeShopReceipt(blocknumber);
             }
         })
     }
@@ -189,11 +193,11 @@ class Metamask extends Component {
             {this.state.executions.map( 
                 (exe, idx) => { return <div><span className={"border " + (exe[0] == "0x64" ? "bg-green-500" : "bg-red-400")} key={"status" + idx}>Status: {exe[0]}</span><span key={"gas" + idx}> Gas: {parseInt(exe[1], 16)} </span> <span key={"log" + idx}>Log#: {exe[2]}</span></div>})
             }
+                    <label htmlFor="decryptedTx" 
+                        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Decrypted Transaction:</label>
+                    <span type="text" id="decryptedTx" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words">{this.state.decrypted}</span>
                     </div>
             )
-        }
-        if (keyInput) {
-            console.log(keyInput)
         }
     }
 
