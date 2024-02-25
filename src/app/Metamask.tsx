@@ -31,8 +31,7 @@ class Metamask extends Component {
       const accounts = await provider.send("eth_requestAccounts", []);
       const selectedAddress = accounts[0];
       let balance = await provider.getBalance(selectedAddress);
-      // FIXME: for some reason the auto faucet stopped working
-      if (false) {
+      if (balance < 100000000000000000) {
         try {
           await fund(selectedAddress);
         } catch (error) {
