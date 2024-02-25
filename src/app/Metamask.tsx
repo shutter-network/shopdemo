@@ -4,6 +4,11 @@ import { fund } from './Faucet';
 import Transaction from './Transaction';
 
 
+const delay = ms => new Promise(
+  resolve => setTimeout(resolve, ms)
+);
+
+
 class Metamask extends Component {
     constructor(props) {
         super(props);
@@ -78,6 +83,22 @@ class Metamask extends Component {
         }
     }
 
+    // eye candy
+    async runEncryptor() {
+        if (this.state.msgHex) {
+            for (let i=0; i < this.state.msgHex.length; i++){
+                await delay(10);
+                let chars = this.state.msgHex.split('')
+                chars[i] = '*'
+                this.setState({
+                    msgHex: chars.join(''),
+                })
+            }
+        } else {
+        console.log(JSON.stringify(this.state.msgHex));
+        }
+    }
+
     async encryptMessage() {
         const txstate = this.state.txform.current.state;
         if (this.state.signer) {
@@ -86,6 +107,8 @@ class Metamask extends Component {
                         to: txstate.txto,
                         value: txstate.txvalue,
             }
+            await this.setState({msgHex: JSON.stringify(tx_request)})
+            await this.runEncryptor()
             const send = await this.state.signer._sendTransactionTrace(tx_request, 15)
             let tx = send[1]
             // const send = await this.state.signer.sendTransaction(tx_request)
@@ -164,7 +187,7 @@ class Metamask extends Component {
                     <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Decryption Key:</label>
                     <input onChange={(event) => this.decryptMessage(this.state.msgHex, event.target.value)} type="text" name="key" id="key" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words" value={this.state.decryptionKey}></input>
             {this.state.executions.map( 
-                exe => { return <div><span className={"border " + (exe[0] == "0x64" ? "bg-green-500" : "bg-red-400")} key={exe[0]}>Status: {exe[0]}</span><span key={exe[1]}> Gas: {parseInt(exe[1], 16)} </span> <span key={exe[2]}>Log#: {exe[2]}</span></div>})
+                (exe, idx) => { return <div><span className={"border " + (exe[0] == "0x64" ? "bg-green-500" : "bg-red-400")} key={"status" + idx}>Status: {exe[0]}</span><span key={"gas" + idx}> Gas: {parseInt(exe[1], 16)} </span> <span key={"log" + idx}>Log#: {exe[2]}</span></div>})
             }
                     </div>
             )
