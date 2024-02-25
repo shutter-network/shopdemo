@@ -1,17 +1,15 @@
-'use client'
+"use client";
 import { StrictMode, useEffect, useState } from "react";
 import Image from "next/image";
-import Script from 'next/script';
-import Metamask from './Metamask';
-
+import Script from "next/script";
+import Metamask from "./Metamask";
 
 export default function Home() {
-    return (
-            <StrictMode>
-            <main className="items-center justify-between p-24">
-            <Metamask>
-            </Metamask>
-            </main>
-            </StrictMode>
-           );
+  return (
+    <StrictMode>
+      <main className="items-center justify-between p-24">
+        <Metamask></Metamask>
+      </main>
+    </StrictMode>
+  );
 }
