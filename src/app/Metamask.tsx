@@ -241,16 +241,13 @@ class Metamask extends Component {
           >
             Decryption Key:
           </label>
-          <input
-            onChange={(event) =>
-              this.decryptMessage(this.state.msgHex, event.target.value)
-            }
+          <span
             type="text"
-            name="key"
             id="key"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-            value={this.state.decryptionKey}
-          ></input>
+          >
+            {this.state.decryptionKey}
+          </span>
           {this.state.executions.map((exe) => {
             return (
               <div key={exe[0][0] + exe[1][0] + exe[2][0]}>
