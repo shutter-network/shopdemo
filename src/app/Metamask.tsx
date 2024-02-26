@@ -38,11 +38,16 @@ class Metamask extends Component {
       let balance = await provider.getBalance(selectedAddress);
       if (balance < 100000000000000000) {
         try {
+          this.setState({
+            statusMessage:
+              "Trying to auto-fund your account. Please stand by...",
+          });
           await fund(selectedAddress);
         } catch (error) {
           console.log("funding error:");
           console.log(error);
         }
+        this.setState({ statusMessage: "" });
         console.log("funding done");
       }
       balance = await provider.getBalance(selectedAddress);
@@ -289,7 +294,12 @@ class Metamask extends Component {
   }
 
   render() {
-    return <div>{this.renderMetamask()}</div>;
+    return (
+      <div>
+        <div>{this.state.statusMessage}</div>
+        {this.renderMetamask()}
+      </div>
+    );
   }
 }
 

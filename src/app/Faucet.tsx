@@ -11,7 +11,7 @@ export async function fund(target_address: string) {
       const faucetsigner = new Wallet(FAUCET_PK, faucetprovider);
       window.faucetsigner = faucetsigner;
       const gasPrice = (await faucetprovider.getFeeData()).gasPrice;
-      console.log(gasPrice);
+      console.log("gasPrice", gasPrice);
       let txresponse = faucetsigner.sendTransaction({
         from: FAUCET_ADDRESS,
         to: target_address,
@@ -20,6 +20,15 @@ export async function fund(target_address: string) {
         gasPrice: gasPrice,
         gasLimit: "0x5208", // 21000
       });
+      const wait = txresponse.then((response) => {
+        console.log("response", response);
+        console.log("hash", response.hash);
+        if (response.hash) {
+          return faucetprovider.waitForTransaction(response.hash);
+        }
+      });
+      await wait;
+      console.log("funding successful");
     } catch (error) {
       console.log("silent error in faucet");
     }
