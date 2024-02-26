@@ -10,11 +10,11 @@
     "format": "prettier --write \"**/*.{js,ts,tsx}\""
   },
   "dependencies": {
+    "@shutter-network/shop-sdk": "^0.1.1",
     "@shutter-network/shutter-crypto": "^2.0.0",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18",
-    "shutter-sdk": "git+ssh://git@github.com/shutter-network/shutter-sdk.git#340a1f9b69cd8184569131822a6796d353b71c8b"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",

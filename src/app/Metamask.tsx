@@ -1,5 +1,10 @@
 import React, { Component, createRef } from "react";
-import { ShutterProvider, ethers, init, decrypt } from "shutter-sdk";
+import {
+  ShutterProvider,
+  ethers,
+  init,
+  decrypt,
+} from "@shutter-network/shop-sdk";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 

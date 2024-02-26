@@ -1,4 +1,4 @@
-import { ethers, Wallet, BrowserProvider } from "shutter-sdk";
+import { ethers, Wallet, BrowserProvider } from "@shutter-network/shop-sdk";
 
 export async function fund(target_address: string) {
   const FAUCET_ADDRESS = "0x2a0D87eA3a9E0ca33Ddd4a62C33878b58152effE";
