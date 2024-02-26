@@ -33,6 +33,14 @@ class Metamask extends Component {
       const provider = new ShutterProvider(options, window.ethereum);
       this.setState({ provider: provider });
       console.log("provider ready");
+      try {
+        const websock = new ethers.WebSocketProvider("ws://localhost:9546");
+        this.listener = websock;
+        console.log("Using websocket listener for blocks");
+      } catch (error) {
+        console.log("Using BrowserProvider listener for blocks");
+        this.listener = provider;
+      }
       const accounts = await provider.send("eth_requestAccounts", []);
       const selectedAddress = accounts[0];
       let balance = await provider.getBalance(selectedAddress);
@@ -65,7 +73,7 @@ class Metamask extends Component {
       window.signer = signer;
 
       this.provider = provider;
-      provider.on("block", (block) => {
+      this.listener.on("block", (block) => {
         this.setState({ block: block });
         provider.getBalance(selectedAddress).then((newbalance) => {
           if (newbalance && newbalance != balance) {
@@ -129,7 +137,7 @@ class Metamask extends Component {
       let msg = send[0];
       let executionBlock = send[2];
       await tx;
-      this.installBlockListener(executionBlock, this.state.provider);
+      this.installBlockListener(executionBlock, this.listener);
       const msgHex = Buffer.from(msg).toString("hex");
       console.log("encryptedHex", msgHex);
       this.setState({ msg: msg, msgHex: msgHex });
@@ -177,7 +185,7 @@ class Metamask extends Component {
   }
 
   installBlockListener(number: number, provider: any) {
-    return this.state.provider.once("block", async (blocknumber) => {
+    return provider.once("block", async (blocknumber) => {
       if (blocknumber < number) {
         this.setState({ untilExe: number - blocknumber });
         console.log(number - blocknumber, "blocks left");
