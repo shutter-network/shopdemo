@@ -17,6 +17,7 @@ class Metamask extends Component {
       txform: createRef(),
       decryptionKey: "",
       untilExe: "",
+      inclusionWindow: 13,
       executions: [],
     };
   }
@@ -128,16 +129,18 @@ class Metamask extends Component {
       };
       await this.setState({ msgHex: JSON.stringify(tx_request) });
       await this.runEncryptor();
+      await this.setState({ untilExe: this.state.inclusionWindow });
       const send = await this.state.signer._sendTransactionTrace(
         tx_request,
-        15,
+        this.state.inclusionWindow,
+        this.listener,
       );
       let tx = send[1];
       // const send = await this.state.signer.sendTransaction(tx_request)
       let msg = send[0];
       let executionBlock = send[2];
-      await tx;
       this.installBlockListener(executionBlock, this.listener);
+      await tx;
       const msgHex = Buffer.from(msg).toString("hex");
       console.log("encryptedHex", msgHex);
       this.setState({ msg: msg, msgHex: msgHex });
@@ -214,7 +217,6 @@ class Metamask extends Component {
           <p>Welcome {this.state.selectedAddress}</p>
           <p>Your L2 ETH Balance is: {this.state.balance}</p>
           <p>Current L2 Block is: {this.state.block} </p>
-          <p>{this.state.untilExe}</p>
           <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
           {this.renderShutter()}
         </div>
@@ -226,6 +228,22 @@ class Metamask extends Component {
     if (this.state.signer && !this.state.msgHex) {
       return (
         <form onSubmit={(event) => console.log(event)}>
+          <label
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            htmlFor="inclusionWindow"
+          >
+            Execute in {this.state.inclusionWindow} blocks
+          </label>
+          <input
+            value={this.state.inclusionWindow}
+            id="inclusionWindow"
+            type="range"
+            min="2"
+            max="50"
+            onChange={(e) =>
+              this.setState({ inclusionWindow: parseInt(e.target.value) })
+            }
+          />
           <Transaction ref={this.state.txform} />
           <button
             type="button"
@@ -240,6 +258,11 @@ class Metamask extends Component {
     if (this.state.msgHex) {
       return (
         <div className="mb-6">
+          <progress
+            id="exestatus"
+            max={this.state.inclusionWindow}
+            value={this.state.inclusionWindow - this.state.untilExe}
+          ></progress>
           <label
             htmlFor="encryptedTx"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -266,23 +289,31 @@ class Metamask extends Component {
           >
             {this.state.decryptionKey}
           </span>
-          {this.state.executions.map((exe) => {
-            return (
-              <div key={exe[0][0] + exe[1][0] + exe[2][0]}>
-                <span
-                  className={
-                    "border " +
-                    (exe[0][1] == "0x64" ? "bg-green-500" : "bg-red-400")
-                  }
-                  key={exe[0][0]}
-                >
-                  Status: {exe[0][1]}
-                </span>
-                <span key={exe[1][0]}> Gas: {parseInt(exe[1][1], 16)} </span>{" "}
-                <span key={exe[2][0]}>Log#: {exe[2][1]}</span>
-              </div>
-            );
-          })}
+          <label
+            htmlFor="executions-list"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >
+            Executions:
+          </label>
+          <div id="executions-list">
+            {this.state.executions.map((exe) => {
+              return (
+                <div key={exe[0][0] + exe[1][0] + exe[2][0]}>
+                  <span
+                    className={
+                      "border " +
+                      (exe[0][1] == "0x64" ? "bg-green-500" : "bg-red-400")
+                    }
+                    key={exe[0][0]}
+                  >
+                    Status: {exe[0][1]}
+                  </span>
+                  <span key={exe[1][0]}> Gas: {parseInt(exe[1][1], 16)} </span>{" "}
+                  <span key={exe[2][0]}>Log#: {exe[2][1]}</span>
+                </div>
+              );
+            })}
+          </div>
           <label
             htmlFor="decryptedTx"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"

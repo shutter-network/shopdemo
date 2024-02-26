@@ -10,7 +10,7 @@
     "format": "prettier --write \"**/*.{js,ts,tsx}\""
   },
   "dependencies": {
-    "@shutter-network/shop-sdk": "^0.1.1",
+    "@shutter-network/shop-sdk": "^0.1.2",
     "@shutter-network/shutter-crypto": "^2.0.0",
     "next": "14.1.0",
     "react": "^18",
