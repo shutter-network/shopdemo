@@ -22,6 +22,16 @@ class Metamask extends Component {
     };
   }
 
+  async newTx() {
+    await this.setState({
+      msgHex: "",
+      decryptionKey: "",
+      untilExe: "",
+      executions: [],
+      decrypted: "",
+    });
+  }
+
   async connectToMetamask() {
     if (window.ethereum) {
       console.log("Starting...");
@@ -327,6 +337,9 @@ class Metamask extends Component {
           >
             {this.state.decrypted}
           </span>
+          <button type="button" className="btn" onClick={() => this.newTx()}>
+            New Transaction
+          </button>
         </div>
       );
     }
