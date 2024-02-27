@@ -7,17 +7,19 @@ import {
 } from "@shutter-network/shop-sdk";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
+import Camera from "./Camera";
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class Metamask extends Component {
   constructor(props) {
     super(props);
     this.state = {
       txform: createRef(),
+      camera: createRef(),
       decryptionKey: "",
       untilExe: "",
-      inclusionWindow: 13,
+      inclusionWindow: 5,
       executions: [],
     };
   }
@@ -45,7 +47,9 @@ class Metamask extends Component {
       this.setState({ provider: provider });
       console.log("provider ready");
       try {
-        const websock = new ethers.WebSocketProvider("ws://localhost:9546");
+        const websock = new ethers.WebSocketProvider(
+          "ws://165.227.150.52:9546",
+        );
         this.listener = websock;
         console.log("Using websocket listener for blocks");
       } catch (error) {
@@ -182,6 +186,7 @@ class Metamask extends Component {
     const [to, data, value] = this.state.signer.decodeExecutionReceipt(
       "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
     );
+    this.state.camera.current.releaseShutter();
 
     this.setState({
       decryptionKey: decryptionKey.slice(2),
@@ -201,7 +206,6 @@ class Metamask extends Component {
     return provider.once("block", async (blocknumber) => {
       if (blocknumber < number) {
         this.setState({ untilExe: number - blocknumber });
-        console.log(number - blocknumber, "blocks left");
         this.installBlockListener(number, provider);
       } else {
         this.setState({ untilExe: "" });
@@ -268,6 +272,7 @@ class Metamask extends Component {
     if (this.state.msgHex) {
       return (
         <div className="mb-6">
+          <Camera ref={this.state.camera} url="camera-13695.mp3" />
           <progress
             id="exestatus"
             max={this.state.inclusionWindow}

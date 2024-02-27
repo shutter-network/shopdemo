@@ -52,4 +52,54 @@ p.ellipsis {
     .btn-red:hover {
         @apply bg-red-700;
     }
+    .shutter{
+      width:200px;
+      height:200px;
+      display:inline-block;
+      border-radius: 50%;
+      border:1px solid;
+      overflow:hidden;
+      position:relative;
+      --p1:60%;
+      --p2:48%;
+      --p3:38%;
+      
+      --c1: transparent var(--p1),#000 calc(var(--p1) + 1px) calc(var(--p1) + 4px),grey calc(var(--p1) + 5px);
+      --c2: transparent var(--p2),#000 calc(var(--p2) + 1px) calc(var(--p2) + 4px),grey calc(var(--p2) + 5px);
+      --c3: transparent var(--p3),#000 calc(var(--p3) + 1px) calc(var(--p3) + 4px),grey calc(var(--p3) + 5px);
+    }
+
+    .shutter::before,
+    .shutter::after{
+      content:"";
+      position:absolute;
+      top:-50%;
+      left:50%;
+      height:200%;
+      width:100%;
+      transition:.1s all linear;
+      background: 
+        linear-gradient(-126deg,var(--c1)) bottom left / var(--e1,40%) var(--e2,20%) no-repeat,
+        linear-gradient(-162deg,var(--c1)) bottom / 100% var(--e3,60%) no-repeat, 
+        
+        linear-gradient(162deg,var(--c1)),
+        linear-gradient(126deg,var(--c2)),      
+        linear-gradient(90deg, var(--c3)),      
+        linear-gradient(54deg ,var(--c2)),
+        linear-gradient(18deg ,var(--c1)); /* 36deg/2 then we increment by 36deg*/
+    }
+
+    .shutter::after{
+      transform:rotate(180deg);
+      transform-origin:left;
+    }
+
+    .shutter:hover::before,
+    .shutter:hover::after {
+      top:0;
+      left:50%;
+      height:100%;
+      width:50%;
+    }
+
 }
