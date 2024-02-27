@@ -1,4 +1,10 @@
-import React, { useImperativeHandle, useState, useEffect, useRef, forwardRef } from "react";
+import React, {
+  useImperativeHandle,
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+} from "react";
 
 const useAudio = (url) => {
   const [audio] = useState(new Audio(url));
@@ -22,13 +28,23 @@ const useAudio = (url) => {
 
 const Camera = forwardRef((props, ref) => {
   const [playing, toggle] = useAudio(props.url);
+  const [released, setReleased] = useState(false);
+
+  const trigger = () => {
+    setReleased(!released);
+    setTimeout(() => {
+      setReleased(released);
+    }, 100);
+  };
+
   useImperativeHandle(ref, () => ({
     releaseShutter() {
       toggle();
+      trigger();
     },
   }));
 
-  return <div className="shutter"></div>;
+  return <div className={released ? "shutter released" : "shutter"}></div>;
 });
 
 export default Camera;

@@ -77,7 +77,7 @@ p.ellipsis {
       left:50%;
       height:200%;
       width:100%;
-      transition:.1s all linear;
+      transition:.05s all linear;
       background: 
         linear-gradient(-126deg,var(--c1)) bottom left / var(--e1,40%) var(--e2,20%) no-repeat,
         linear-gradient(-162deg,var(--c1)) bottom / 100% var(--e3,60%) no-repeat, 
@@ -94,12 +94,11 @@ p.ellipsis {
       transform-origin:left;
     }
 
-    .shutter:hover::before,
-    .shutter:hover::after {
+    .released::before,
+    .released::after{
       top:0;
       left:50%;
       height:100%;
       width:50%;
     }
-
 }
