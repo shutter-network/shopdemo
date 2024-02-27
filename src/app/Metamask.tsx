@@ -9,6 +9,8 @@ import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
 
+const BLOCKTIME = 5;
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 class Metamask extends Component {
@@ -18,7 +20,6 @@ class Metamask extends Component {
       txform: createRef(),
       camera: createRef(),
       decryptionKey: "",
-      untilExe: "",
       inclusionWindow: 5,
       executions: [],
     };
@@ -28,7 +29,6 @@ class Metamask extends Component {
     await this.setState({
       msgHex: "",
       decryptionKey: "",
-      untilExe: "",
       executions: [],
       decrypted: "",
     });
@@ -143,7 +143,6 @@ class Metamask extends Component {
       };
       await this.setState({ msgHex: JSON.stringify(tx_request) });
       await this.runEncryptor();
-      await this.setState({ untilExe: this.state.inclusionWindow });
       const send = await this.state.signer._sendTransactionTrace(
         tx_request,
         this.state.inclusionWindow,
@@ -186,7 +185,7 @@ class Metamask extends Component {
     const [to, data, value] = this.state.signer.decodeExecutionReceipt(
       "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
     );
-    this.state.camera.current.releaseShutter();
+    this.state.camera.current.control("releaseShutter");
 
     this.setState({
       decryptionKey: decryptionKey.slice(2),
@@ -205,10 +204,14 @@ class Metamask extends Component {
   installBlockListener(number: number, provider: any) {
     return provider.once("block", async (blocknumber) => {
       if (blocknumber < number) {
-        this.setState({ untilExe: number - blocknumber });
+        this.state.camera.current.control("blink");
+        this.state.camera.current.control("setCountdown", {
+          time: number - blocknumber,
+          blockTime: BLOCKTIME,
+        });
         this.installBlockListener(number, provider);
       } else {
-        this.setState({ untilExe: "" });
+        this.state.camera.current.control("disarm");
         this.decodeShopReceipt(blocknumber);
       }
     });
@@ -273,11 +276,6 @@ class Metamask extends Component {
       return (
         <div className="mb-6">
           <Camera ref={this.state.camera} url="camera-13695.mp3" />
-          <progress
-            id="exestatus"
-            max={this.state.inclusionWindow}
-            value={this.state.inclusionWindow - this.state.untilExe}
-          ></progress>
           <label
             htmlFor="encryptedTx"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"

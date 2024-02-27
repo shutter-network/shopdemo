@@ -101,4 +101,35 @@ p.ellipsis {
       height:100%;
       width:50%;
     }
+
+    .blinker {
+        animation: blink 1s linear;
+        animation-iteration-count: 5;
+    }
+    @keyframes blink {
+        25% {
+            opacity: 0.5;
+        }
+        50% {
+            opacity: 1;
+        }
+        75% {
+            opacity: 0.5;
+        }
+    }
+    .dot {
+        height: 25px;
+        width: 25px;
+        background-color: rgb(255, 50, 0);
+        border-radius: 50%;
+        opacity: 0;
+    }
+    .camera-control {
+        display: inline-block;
+        margin-right: 5px;
+        vertical-align: top;
+    }
+    .inactive {
+        filter: contrast(1%);
+    }
 }
