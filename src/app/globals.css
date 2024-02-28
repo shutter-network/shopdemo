@@ -61,8 +61,8 @@ p.ellipsis {
   }
   .receiver-icon {
     border-radius: 50%;
-    width: 200px;
-    height: 200px;
+    position: relative;
+    top: 33px;
   }
   .camerabody {
     position: relative;
