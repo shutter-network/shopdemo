@@ -1,4 +1,5 @@
 import React, { Component, createRef } from "react";
+import Image from "next/image";
 import BlockiesSvg from "blockies-react-svg";
 import {
   ShutterProvider,
@@ -230,17 +231,32 @@ class Metamask extends Component {
   renderMetamask() {
     if (!this.state.block) {
       return (
-        <button
-          type="button"
-          className="btn"
-          onClick={() => this.connectToMetamask()}
-        >
-          Connect to Metamask
-        </button>
+        <div className="heading">
+          <Image
+            src="/SH_OP.svg"
+            width="100"
+            height="100"
+            alt="shutterized OPTIMISM demo"
+          />
+          <button
+            type="button"
+            className="btn"
+            onClick={() => this.connectToMetamask()}
+          >
+            Connect to Metamask
+          </button>
+        </div>
       );
     } else {
       return (
         <div>
+          <Image
+            src="/SH_OP.svg"
+            width="100"
+            height="100"
+            alt="shutterized OPTIMISM demo"
+            className="logo float-left"
+          />
           <p>Welcome {this.state.selectedAddress}</p>
           <p>Your L2 ETH Balance is: {this.state.balance}</p>
           <p>Current L2 Block is: {this.state.block} </p>

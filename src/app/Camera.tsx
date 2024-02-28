@@ -134,7 +134,7 @@ const Camera = forwardRef((props, ref) => {
   }));
 
   return (
-    <div>
+    <div className="camerabody">
       <div style={motive} className="motive"></div>
       <div
         onClick={shut}

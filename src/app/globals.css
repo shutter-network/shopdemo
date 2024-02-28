@@ -64,14 +64,18 @@ p.ellipsis {
     width: 200px;
     height: 200px;
   }
-  .shutterbody {
-    position: fixed;
+  .camerabody {
+    position: relative;
+    top: 20px;
+    display: block;
+    margin-bottom: 20px;
   }
   .shutter {
     z-index: 999999;
     width: 200px;
     height: 200px;
-    /* display:inline-block; */
+    left: -100px;
+    display: inline-block;
     border-radius: 50%;
     border: 1px solid;
     overflow: hidden;

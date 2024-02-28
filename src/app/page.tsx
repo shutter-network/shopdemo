@@ -1,6 +1,5 @@
 "use client";
 import { StrictMode, useEffect, useState } from "react";
-import Image from "next/image";
 import Script from "next/script";
 import Metamask from "./Metamask";
 
