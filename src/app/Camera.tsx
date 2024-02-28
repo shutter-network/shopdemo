@@ -41,16 +41,16 @@ const Camera = forwardRef((props, ref) => {
   const [counter, setCounter] = useState(0);
   const [dotkey, setDotkey] = useState(Math.random());
   const [motive, setMotive] = useState({
-      filter: "blur(20px) saturate(0)",
-      background:
-        "url(" +
-        makeBlockiesUrl(
-          "0x4200000000000000000000000000000000000066",
-          size,
-          caseSensitive,
-          scale,
-        ) +
-        ") no-repeat center",
+    filter: "blur(20px) saturate(0)",
+    background:
+      "url(" +
+      makeBlockiesUrl(
+        "0x4200000000000000000000000000000000000066",
+        size,
+        caseSensitive,
+        scale,
+      ) +
+      ") no-repeat center",
   });
 
   const trigger = () => {

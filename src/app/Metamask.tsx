@@ -6,6 +6,7 @@ import {
   init,
   decrypt,
 } from "@shutter-network/shop-sdk";
+import { checkOnboarding } from "./Onboarding";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
@@ -45,11 +46,16 @@ class Metamask extends Component {
         keyBroadcastAddress: "0x4200000000000000000000000000000000000068",
       };
       const provider = new ShutterProvider(options, window.ethereum);
+
+      const connected = await checkOnboarding();
+      console.log(connected);
+
       this.setState({ provider: provider });
       console.log("provider ready");
+
       try {
         const websock = new ethers.WebSocketProvider(
-          "ws://165.227.150.52:9546",
+          "wss://socket.sepolia.staging.shutter.network",
         );
         this.listener = websock;
         console.log("Using websocket listener for blocks");

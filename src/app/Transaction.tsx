@@ -16,12 +16,12 @@ class Transaction extends Component {
     return (
       <div>
         <label htmlFor="txto">Receiver:</label>
-          <BlockiesSvg
-            address={this.state.txto}
-            className="receiver-icon w-px-40 h-px-40 float-right"
-            key={this.state.txto}
-            scale={5}
-          />
+        <BlockiesSvg
+          address={this.state.txto}
+          className="receiver-icon w-px-40 h-px-40 float-right"
+          key={this.state.txto}
+          scale={5}
+        />
         <input
           type="input"
           id="txto"
