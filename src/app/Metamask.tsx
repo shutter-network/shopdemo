@@ -1,4 +1,5 @@
 import React, { Component, createRef } from "react";
+import BlockiesSvg from "blockies-react-svg";
 import {
   ShutterProvider,
   ethers,
@@ -254,18 +255,24 @@ class Metamask extends Component {
     if (this.state.signer && !this.state.msgHex) {
       return (
         <form onSubmit={(event) => console.log(event)}>
+          <BlockiesSvg
+            address={this.state.txform.current?.state?.txto}
+            className="receiver-icon"
+            key={this.state.txform.current?.state?.txto}
+          />
           <label
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             htmlFor="inclusionWindow"
           >
-            Execute in {this.state.inclusionWindow} blocks
+            Execute in {this.state.inclusionWindow} blocks/
+            {this.state.inclusionWindow * BLOCKTIME}s
           </label>
           <input
             value={this.state.inclusionWindow}
             id="inclusionWindow"
             type="range"
             min="2"
-            max="50"
+            max="20"
             onChange={(e) =>
               this.setState({ inclusionWindow: parseInt(e.target.value) })
             }

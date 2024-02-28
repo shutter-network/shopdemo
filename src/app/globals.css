@@ -59,6 +59,11 @@ p.ellipsis {
     height: 200px;
     z-index: 1;
   }
+  .receiver-icon {
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+  }
   .shutterbody {
     position: fixed;
   }
