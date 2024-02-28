@@ -148,12 +148,21 @@ class Metamask extends Component {
         this.state.inclusionWindow,
         this.listener,
       );
-      let tx = send[1];
       // const send = await this.state.signer.sendTransaction(tx_request)
+      let tx = send[1];
       let msg = send[0];
       let executionBlock = send[2];
+      this.state.camera.current.control("setBlur");
       this.installBlockListener(executionBlock, this.listener);
-      await tx;
+      tx = await tx;
+      this.listener.waitForTransaction(tx.hash).then((value) => {
+        if (value.blockNumber < executionBlock && value.status == 1) {
+          console.log(value.hash);
+          this.state.camera.current.control("setFocus");
+        } else {
+          console.log("Inbox tx failed/too late!", value);
+        }
+      });
       const msgHex = Buffer.from(msg).toString("hex");
       console.log("encryptedHex", msgHex);
       this.setState({ msg: msg, msgHex: msgHex });
@@ -185,7 +194,7 @@ class Metamask extends Component {
     const [to, data, value] = this.state.signer.decodeExecutionReceipt(
       "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
     );
-    this.state.camera.current.control("releaseShutter");
+    this.state.camera.current.control("releaseShutter", { txto: to });
 
     this.setState({
       decryptionKey: decryptionKey.slice(2),
