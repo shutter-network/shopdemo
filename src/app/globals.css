@@ -53,6 +53,7 @@ p.ellipsis {
     @apply bg-red-700;
   }
   .motive {
+    transition: 1s all linear;
     position: fixed;
     border-radius: 50%;
     width: 200px;

@@ -28,6 +28,10 @@ const useAudio = (url) => {
 };
 
 const Camera = forwardRef((props, ref) => {
+  const size = 8;
+  const caseSensitive = true;
+  const scale = 20;
+
   const [playing, toggle] = useAudio(props.url);
   const [playbeep, toggleBeep] = useAudio("focus-beep.mp3");
   const [released, setReleased] = useState(false);
@@ -36,7 +40,18 @@ const Camera = forwardRef((props, ref) => {
   const [focussed, setFocussed] = useState(false);
   const [counter, setCounter] = useState(0);
   const [dotkey, setDotkey] = useState(Math.random());
-  const [motive, setMotive] = useState({});
+  const [motive, setMotive] = useState({
+      filter: "blur(20px) saturate(0)",
+      background:
+        "url(" +
+        makeBlockiesUrl(
+          "0x4200000000000000000000000000000000000066",
+          size,
+          caseSensitive,
+          scale,
+        ) +
+        ") no-repeat center",
+  });
 
   const trigger = () => {
     setReleased(true);
@@ -55,9 +70,6 @@ const Camera = forwardRef((props, ref) => {
     setDotkey(Math.random());
   };
 
-  const size = 8;
-  const caseSensitive = true;
-  const scale = 20;
   const showMotive = (address: string) => {
     setMotive({
       ...motive,
@@ -86,6 +98,7 @@ const Camera = forwardRef((props, ref) => {
   const setFocus = () => {
     setMotive({
       ...motive,
+      transition: "0s all linear",
       filter: "saturate(0)",
       background:
         "url(" +
