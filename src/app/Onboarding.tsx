@@ -7,15 +7,19 @@ export async function checkOnboarding() {
     const switched = await switchShopNetwork();
     console.log(switched);
   } catch (error) {
-    if (error.code === 4902) {
+    console.log(JSON.stringify(error));
+    if (error.code === 4902 || error.data?.originalError?.code === 4902) {
       alert("SHOP network not known. We will now ask to add it!");
       try {
         const added = await addShopNetwork();
       } catch (error) {
+        alert("unrecoverable error:", JSON.stringify(error));
         console.error(error);
+        return false;
       }
+      await switchShopNetwork();
     } else {
-      alert("switching to SHOP network failed");
+      alert("switching to SHOP network failed:", JSON.stringify(error));
       console.error(error);
     }
   }
@@ -42,6 +46,7 @@ async function addShopNetwork() {
 }
 
 async function switchShopNetwork() {
+  alert("Trying to switch to SHOP network, please allow in wallet.");
   return await window.ethereum.request({
     method: "wallet_switchEthereumChain",
     params: [
