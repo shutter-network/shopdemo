@@ -55,7 +55,7 @@ class Metamask extends Component {
 
       try {
         const websock = new ethers.WebSocketProvider(
-          "wss://socket.sepolia.staging.shutter.network",
+          "wss://rpc.sepolia.staging.shutter.network",
         );
         this.listener = websock;
         console.log("Using websocket listener for blocks");
