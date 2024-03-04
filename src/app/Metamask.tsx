@@ -10,6 +10,7 @@ import { checkOnboarding } from "./Onboarding";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
+import uuidv3 from "uuid/v3";
 
 const BLOCKTIME = 5;
 
@@ -24,6 +25,7 @@ class Metamask extends Component {
       decryptionKey: "",
       inclusionWindow: 5,
       executions: [],
+      statusMessage: [],
     };
   }
 
@@ -36,6 +38,24 @@ class Metamask extends Component {
     });
   }
 
+  setStatusMessage = (...msgs: string) => {
+    let statusMessages = [...this.state.statusMessage];
+    msgs.forEach((msg, i) => {
+      statusMessages = [
+        {
+          msg: msg,
+          key:
+            Date.parse(new Date()).toString() +
+            "-" +
+            (statusMessages.length + i).toString(),
+        },
+        ...statusMessages,
+      ];
+      console.log("MSG", msg);
+    });
+    this.setState({ statusMessage: statusMessages });
+  };
+
   async connectToMetamask() {
     if (window.ethereum) {
       console.log("Starting...");
@@ -47,7 +67,7 @@ class Metamask extends Component {
       };
       const provider = new ShutterProvider(options, window.ethereum);
 
-      const connected = await checkOnboarding();
+      const connected = await checkOnboarding(this.setStatusMessage);
       console.log(connected);
 
       this.setState({ provider: provider });
@@ -68,16 +88,15 @@ class Metamask extends Component {
       let balance = await provider.getBalance(selectedAddress);
       if (balance < 100000000000000000) {
         try {
-          this.setState({
-            statusMessage:
-              "Trying to auto-fund your account. Please stand by...",
-          });
+          setStatusMessage(
+            "Trying to auto-fund your account. Please stand by...",
+          );
           await fund(selectedAddress);
         } catch (error) {
           console.log("funding error:");
           console.log(error);
         }
-        this.setState({ statusMessage: "" });
+        setStatusMessage("success");
         console.log("funding done");
       }
       balance = await provider.getBalance(selectedAddress);
@@ -383,8 +402,14 @@ class Metamask extends Component {
   render() {
     return (
       <div>
-        <div>{this.state.statusMessage}</div>
         {this.renderMetamask()}
+        {this.state.statusMessage.map((msg) => {
+          return (
+            <span className="inline-block" key={msg.key}>
+              {msg.msg}
+            </span>
+          );
+        })}
       </div>
     );
   }

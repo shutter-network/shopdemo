@@ -1,31 +1,34 @@
-export async function checkOnboarding() {
+const shopChain = { chainId: "0x281b6fc" };
+
+export async function checkOnboarding(status: Function) {
   if (!window.ethereum) {
-    alert("No Wallet provider!");
+    status("No Wallet provider!");
     return false;
   }
   try {
-    const switched = await switchShopNetwork();
+    const switched = await switchShopNetwork(status);
     console.log(switched);
   } catch (error) {
     console.log(JSON.stringify(error));
     if (error.code === 4902 || error.data?.originalError?.code === 4902) {
-      alert("SHOP network not known. We will now ask to add it!");
+      status("SHOP network not known. We will now ask to add it!");
       try {
-        const added = await addShopNetwork();
+        const added = await addShopNetwork(status);
       } catch (error) {
-        alert("unrecoverable error:", JSON.stringify(error));
+        status("unrecoverable error:", JSON.stringify(error));
         console.error(error);
         return false;
       }
-      await switchShopNetwork();
+      await switchShopNetwork(status);
+      status("You're now connected to SHOP network!");
     } else {
-      alert("switching to SHOP network failed:", JSON.stringify(error));
+      status("switching to SHOP network failed:", JSON.stringify(error));
       console.error(error);
     }
   }
 }
 
-async function addShopNetwork() {
+async function addShopNetwork(status: Function) {
   return await window.ethereum.request({
     method: "wallet_addEthereumChain",
     params: [
@@ -45,19 +48,19 @@ async function addShopNetwork() {
   });
 }
 
-async function switchShopNetwork() {
-  alert("Trying to switch to SHOP network, please allow in wallet.");
-  return await window.ethereum.request({
-    method: "wallet_switchEthereumChain",
-    params: [
-      {
-        chainId: "0x281b6fc",
-      },
-    ],
-  });
+async function switchShopNetwork(status: Function) {
+  const currentChain = await window.ethereum.request({ method: "eth_chainId" });
+  if (currentChain != shopChain.chainId) {
+    status("Trying to switch to SHOP network, please allow in wallet.");
+    return await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [shopChain],
+    });
+    status("Ready.");
+  }
 }
 
-async function addSepoliaNetwork() {
+async function addSepoliaNetwork(status: Function) {
   return await window.ethereum.request({
     method: "wallet_addEthereumChain",
     params: [
@@ -81,7 +84,7 @@ async function addSepoliaNetwork() {
   });
 }
 
-async function switchSepoliaNetwork() {
+async function switchSepoliaNetwork(status: Function) {
   return await window.ethereum.request({
     method: "wallet_switchEthereumChain",
     params: [
