@@ -11,6 +11,7 @@ import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
 import uuidv3 from "uuid/v3";
+import L1Bridge from "./L1StandardBridge";
 
 const BLOCKTIME = 5;
 
@@ -417,9 +418,37 @@ class Metamask extends Component {
     }
   }
 
+  renderAbi(abi) {
+    console.log(abi);
+    return (
+      <div>
+        {abi.map((entry) => {
+          if (entry.type === "function") {
+            return <span className="block">{entry.name}</span>;
+          }
+        })}
+      </div>
+    );
+  }
+
+  renderAbiFunction(abiFunction) {
+    console.log(abiFunction);
+    return (
+      <div className="abifunction">
+        <span className="block">{abiFunction.name}</span>
+        <div>
+          {abiFunction.inputs.map((funcInput) => {
+            return <span className="block">{funcInput.name}</span>;
+          })}
+        </div>
+      </div>
+    );
+  }
+
   render() {
     return (
       <div>
+        {this.renderAbi(L1Bridge.abi)}
         {this.renderMetamask()}
         {this.state.statusMessage.map((msg) => {
           return (
