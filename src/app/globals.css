@@ -52,14 +52,6 @@ p.ellipsis {
   .btn-red:hover {
     @apply bg-red-700;
   }
-  .motive {
-    transition: 1s all linear;
-    position: fixed;
-    border-radius: 50%;
-    width: 200px;
-    height: 200px;
-    z-index: 1;
-  }
   .receiver-icon {
     border-radius: 50%;
     position: relative;
@@ -70,17 +62,26 @@ p.ellipsis {
     top: 20px;
     display: block;
     margin-bottom: 20px;
+    height: 230px;
   }
-  .shutter {
-    z-index: 999999;
+  .motive {
+    transition: 1s all linear;
+    position: absolute;
+    border-radius: 50%;
     width: 200px;
     height: 200px;
-    left: -100px;
+    z-index: 1;
+  }
+  .shutter {
+    z-index: 9;
+    width: 200px;
+    height: 200px;
     display: inline-block;
     border-radius: 50%;
     border: 1px solid;
     overflow: hidden;
-    position: relative;
+    position: absolute;
+    left: 0px;
     --p1: 60%;
     --p2: 48%;
     --p3: 38%;
@@ -129,9 +130,18 @@ p.ellipsis {
     width: 50%;
   }
 
+  .camera-control {
+    position: relative;
+    left: 200px;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: top;
+  }
   .blinker {
     animation: blink 1s linear;
     animation-iteration-count: 5;
+    display: inline-block;
+    position: relative;
   }
   @keyframes blink {
     25% {
@@ -145,16 +155,13 @@ p.ellipsis {
     }
   }
   .dot {
+    position: relative;
     height: 25px;
     width: 25px;
     background-color: rgb(255, 50, 0);
     border-radius: 50%;
     opacity: 0;
-  }
-  .camera-control {
     display: inline-block;
-    margin-right: 5px;
-    vertical-align: top;
   }
   .inactive {
     filter: contrast(1%);
