@@ -6,7 +6,7 @@ import {
   init,
   decrypt,
 } from "@shutter-network/shop-sdk";
-import { checkOnboarding } from "./Onboarding";
+import { checkOnboarding, queryL1 } from "./Onboarding";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
@@ -38,7 +38,7 @@ class Metamask extends Component {
     });
   }
 
-  setStatusMessage = (...msgs: string) => {
+  addStatusMessage = (...msgs: string) => {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
       statusMessages = [
@@ -59,6 +59,9 @@ class Metamask extends Component {
   async connectToMetamask() {
     if (window.ethereum) {
       console.log("Starting...");
+      const [l1provider, l1bridge] = await queryL1(this.addStatusMessage);
+      window.l1provider = l1provider;
+      window.l1bridge = l1bridge;
       const options = {
         wasmUrl: "/shutter-crypto.wasm",
         keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
@@ -67,7 +70,7 @@ class Metamask extends Component {
       };
       const provider = new ShutterProvider(options, window.ethereum);
 
-      const connected = await checkOnboarding(this.setStatusMessage);
+      const connected = await checkOnboarding(this.addStatusMessage);
       console.log(connected);
 
       this.setState({ provider: provider });
@@ -88,7 +91,7 @@ class Metamask extends Component {
       let balance = await provider.getBalance(selectedAddress);
       if (balance < 100000000000000000) {
         try {
-          setStatusMessage(
+          addStatusMessage(
             "Trying to auto-fund your account. Please stand by...",
           );
           await fund(selectedAddress);
@@ -96,7 +99,7 @@ class Metamask extends Component {
           console.log("funding error:");
           console.log(error);
         }
-        setStatusMessage("success");
+        addStatusMessage("success");
         console.log("funding done");
       }
       balance = await provider.getBalance(selectedAddress);
@@ -261,6 +264,7 @@ class Metamask extends Component {
             width="100"
             height="100"
             alt="shutterized OPTIMISM demo"
+            priority={true}
           />
           <button
             type="button"

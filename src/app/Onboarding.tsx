@@ -1,4 +1,35 @@
-const shopChain = { chainId: "0x281b6fc" };
+import { BrowserProvider, Contract } from "ethers";
+import L1StandardBridge from "./L1StandardBridge";
+
+const shopChain = {
+  chainId: "0x281b6fc",
+  chainName: "SHOP",
+  rpcUrls: ["https://rpc.sepolia.staging.shutter.network"],
+  iconUrls: ["https://demo.sepolia.staging.shutter.network/icon-192.png"],
+  nativeCurrency: {
+    name: "SHOPeth",
+    symbol: "SHOP",
+    decimals: 18,
+  },
+  blockExplorerUrls: null,
+};
+
+const sepoliaChain = {
+  chainId: "0xaa36a7",
+  chainName: "Sepolia",
+  rpcUrls: [
+    "https://rpc.sepolia.org/",
+    "https://rpc2.sepolia.org/",
+    "https://ethereum-sepolia-rpc.publicnode.com",
+  ],
+  iconUrls: [],
+  nativeCurrency: {
+    name: "SEP",
+    symbol: "SEP",
+    decimals: 18,
+  },
+  blockExplorerUrls: ["https://sepolia.etherscan.io/"],
+};
 
 export async function checkOnboarding(status: Function) {
   if (!window.ethereum) {
@@ -31,20 +62,7 @@ export async function checkOnboarding(status: Function) {
 async function addShopNetwork(status: Function) {
   return await window.ethereum.request({
     method: "wallet_addEthereumChain",
-    params: [
-      {
-        chainId: "0x281b6fc",
-        chainName: "SHOP",
-        rpcUrls: ["https://rpc.sepolia.staging.shutter.network"],
-        iconUrls: ["https://demo.sepolia.staging.shutter.network/icon-192.png"],
-        nativeCurrency: {
-          name: "SHOPeth",
-          symbol: "SHOP",
-          decimals: 18,
-        },
-        blockExplorerUrls: null,
-      },
-    ],
+    params: [shopChain],
   });
 }
 
@@ -54,7 +72,7 @@ async function switchShopNetwork(status: Function) {
     status("Trying to switch to SHOP network, please allow in wallet.");
     return await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [shopChain],
+      params: [{ chainId: shopChain.chainId }],
     });
     status("Ready.");
   }
@@ -63,36 +81,33 @@ async function switchShopNetwork(status: Function) {
 async function addSepoliaNetwork(status: Function) {
   return await window.ethereum.request({
     method: "wallet_addEthereumChain",
-    params: [
-      {
-        chainId: "0xaa36a7",
-        chainName: "Sepolia",
-        rpcUrls: [
-          "https://rpc.sepolia.org/",
-          "https://rpc2.sepolia.org/",
-          "https://ethereum-sepolia-rpc.publicnode.com",
-        ],
-        iconUrls: [],
-        nativeCurrency: {
-          name: "SEP",
-          symbol: "SEP",
-          decimals: 18,
-        },
-        blockExplorerUrls: ["https://sepolia.etherscan.io/"],
-      },
-    ],
+    params: [sepoliaChain],
   });
 }
 
 async function switchSepoliaNetwork(status: Function) {
-  return await window.ethereum.request({
-    method: "wallet_switchEthereumChain",
-    params: [
-      {
-        chainId: "0xaa36a7",
-      },
-    ],
-  });
+  const currentChain = await window.ethereum.request({ method: "eth_chainId" });
+  if (currentChain != sepoliaChain.chainId) {
+    status("Trying to switch to Sepolia network, please allow in wallet.");
+    return await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: sepoliaChain.chainId }],
+    });
+    status("Ready.");
+  }
+}
+
+export async function queryL1(status: Function) {
+  if (window.ethereum) {
+    await switchSepoliaNetwork(status);
+    const provider = new BrowserProvider(window.ethereum);
+    const l1StandardBridge = new Contract(
+      "0x00000000000000000000000000000000",
+      L1StandardBridge.abi,
+      provider,
+    );
+    return [provider, l1StandardBridge];
+  }
 }
 
 /* Sepolia FAUCETS
