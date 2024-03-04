@@ -26,6 +26,7 @@ class Metamask extends Component {
       inclusionWindow: 5,
       executions: [],
       statusMessage: [],
+      paused: false,
     };
   }
 
@@ -124,6 +125,16 @@ class Metamask extends Component {
             balance = newbalance;
             balanceInEther = ethers.formatEther(balance);
             this.setState({ balance: balanceInEther });
+          }
+        });
+        signer.isShutterPaused().then((paused) => {
+          if (paused != this.state.paused) {
+            this.setState({ paused: paused });
+            if (paused) {
+              addStatusMessage("Shutter is paused");
+            } else {
+              addStatusMessage("Shutter is operational");
+            }
           }
         });
       });
@@ -319,7 +330,10 @@ class Metamask extends Component {
           <Transaction ref={this.state.txform} />
           <button
             type="button"
-            className="btn btn-red"
+            disabled={this.state.paused}
+            className={
+              this.state.paused ? "btn btn-disabled disabled" : "btn btn-red"
+            }
             onClick={() => this.encryptMessage()}
           >
             Encrypt Transaction

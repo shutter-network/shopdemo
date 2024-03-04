@@ -52,6 +52,12 @@ p.ellipsis {
   .btn-red:hover {
     @apply bg-red-700;
   }
+  .disabled {
+    @apply bg-gray-300 text-white;
+  }
+  .disabled:hover {
+    @apply bg-gray-300 text-white;
+  }
   .receiver-icon {
     border-radius: 50%;
     position: relative;
