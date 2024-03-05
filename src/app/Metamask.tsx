@@ -419,26 +419,72 @@ class Metamask extends Component {
     }
   }
 
-  renderAbi(abi) {
-    console.log(abi);
+  abifun2sig(abifun) {
+    const sig =
+      abifun.name +
+      "(" +
+      abifun.inputs.reduce((s, i) => s + "," + i.type, "").slice(1) +
+      ")";
+    return sig;
+  }
+
+  abifun2sigbytes(abifun) {
+    const sig = this.abifun2sig(abifun);
+    let utf8Encode = new TextEncoder();
+    return ethers.keccak256(utf8Encode.encode(sig)).slice(0, 10);
+  }
+
+  renderAbiFun(abifun) {
     return (
-      <div>
-        {abi.map((entry) => {
-          if (entry.type === "function") {
+      <>
+        {abifun.inputs.map((funcInput, i) => {
+          return <span key={abifun.key}>{funcInput.name}, </span>;
+        })}
+      </>
+    );
+  }
+
+  renderAbi(abi) {
+    // React.memo()?
+    // console.log("re-rendering ABI");
+    let keyed = [];
+    for (const fun of abi) {
+      if (fun.type === "function" && fun.stateMutability != "view") {
+        const sig = this.abifun2sigbytes(fun);
+        keyed = [
+          ...keyed,
+          {
+            key: sig,
+            name: { key: sig + "name", value: fun.name },
+            inputs: fun.inputs.map((input, i) => {
+              return {
+                ...input,
+                key: sig + "i" + i,
+              };
+            }),
+            outputs: fun.outputs,
+            stateMutability: fun.stateMutability,
+            type: fun.type,
+          },
+        ];
+      }
+    }
+    console.log(keyed);
+    return (
+      <>
+        {keyed.map((entry) => {
+          if (entry.type === "function" && entry.stateMutability != "view") {
             return (
-              <div className="block">
-                <div className="abifunname block">{entry.name}(</div>
-                <div>
-                  {entry.inputs.map((funcInput) => {
-                    return <span>{funcInput.name}, </span>;
-                  })}
+              <div key={entry.key} className="block">
+                <div key={entry.name.key + "name"} className="abifunname block">
+                  {entry.name.value}(
                 </div>
-                )
+                {this.renderAbiFun(entry)})
               </div>
             );
           }
         })}
-      </div>
+      </>
     );
   }
 
