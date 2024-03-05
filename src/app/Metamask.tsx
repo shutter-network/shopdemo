@@ -29,6 +29,7 @@ class Metamask extends Component {
       statusMessage: [],
       paused: false,
     };
+    this.overlay = createRef(null);
   }
 
   async newTx() {
@@ -498,6 +499,13 @@ class Metamask extends Component {
     console.log(keyed);
     return (
       <>
+        <button
+          className="btn"
+          type="btn"
+          onClick={() => (this.overlay.current.style.display = "none")}
+        >
+          X
+        </button>
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
@@ -525,8 +533,17 @@ class Metamask extends Component {
   render() {
     return (
       <div>
-        <div>{this.renderAbi(L1Bridge.abi)}</div>
+        <div ref={this.overlay} id="overlay">
+          {this.renderAbi(L1Bridge.abi)}
+        </div>
         {this.renderMetamask()}
+        <button
+          className="btn"
+          type="btn"
+          onClick={() => (this.overlay.current.style.display = "block")}
+        >
+          Show ABI
+        </button>
         {this.state.statusMessage.map((msg) => {
           return (
             <span className="inline-block" key={msg.key}>
