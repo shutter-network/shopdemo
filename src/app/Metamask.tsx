@@ -424,23 +424,19 @@ class Metamask extends Component {
       <div>
         {abi.map((entry) => {
           if (entry.type === "function") {
-            return <span className="block">{entry.name}</span>;
+            return (
+              <div className="block">
+                <div className="abifunname block">{entry.name}(</div>
+                <div>
+                  {entry.inputs.map((funcInput) => {
+                    return <span>{funcInput.name}, </span>;
+                  })}
+                </div>
+                )
+              </div>
+            );
           }
         })}
-      </div>
-    );
-  }
-
-  renderAbiFunction(abiFunction) {
-    console.log(abiFunction);
-    return (
-      <div className="abifunction">
-        <span className="block">{abiFunction.name}</span>
-        <div>
-          {abiFunction.inputs.map((funcInput) => {
-            return <span className="block">{funcInput.name}</span>;
-          })}
-        </div>
       </div>
     );
   }
