@@ -40,12 +40,18 @@ class Metamask extends Component {
     });
   }
 
-  contractCall = async (event, abi) => {
+  contractCall = async (event, abi, abifun) => {
     event.preventDefault();
-    for (const input of abi.inputs) {
-      // TODO: encode form input as contract call
+    const intf = new ethers.Interface(abi);
+    let args = [];
+    for (const input of abifun.inputs) {
       console.log(this.state.contractData[input.key]);
+      args = [...args, this.state.contractData[input.key]];
     }
+    const funfrag = intf.getFunction(abifun.name.value);
+    const calldata = intf.encodeFunctionData(funfrag, args);
+    this.state.txform.current.setState({ txdata: calldata });
+    console.log(calldata);
   };
 
   addStatusMessage = async (...msgs: string) => {
@@ -500,7 +506,7 @@ class Metamask extends Component {
                   id={entry.key}
                   key={entry.key}
                   onSubmit={(event) => {
-                    this.contractCall(event, entry);
+                    this.contractCall(event, abi, entry);
                   }}
                 >
                   {entry.name.value}({this.renderAbiFun(entry)})
