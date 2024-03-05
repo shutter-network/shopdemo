@@ -40,22 +40,23 @@ class Metamask extends Component {
     });
   }
 
-  addStatusMessage = (...msgs: string) => {
+  addStatusMessage = async (...msgs: string) => {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
       statusMessages = [
+        ...statusMessages,
         {
           msg: msg,
           key:
             Date.parse(new Date()).toString() +
             "-" +
-            (statusMessages.length + i).toString(),
+            [...msg].reduce((s, c) => s + c.charCodeAt(), 0),
         },
-        ...statusMessages,
       ];
       console.log("MSG", msg);
     });
-    this.setState({ statusMessage: statusMessages });
+    console.log(JSON.stringify(statusMessages));
+    await this.setState({ statusMessage: statusMessages });
   };
 
   async connectToMetamask() {
@@ -93,15 +94,15 @@ class Metamask extends Component {
       let balance = await provider.getBalance(selectedAddress);
       if (balance < 100000000000000000) {
         try {
-          addStatusMessage(
+          await this.addStatusMessage(
             "Trying to auto-fund your account. Please stand by...",
           );
-          await fund(selectedAddress);
+          // await fund(selectedAddress);
         } catch (error) {
           console.log("funding error:");
           console.log(error);
         }
-        addStatusMessage("success");
+        await this.addStatusMessage("success");
         console.log("funding done");
       }
       balance = await provider.getBalance(selectedAddress);
