@@ -40,6 +40,14 @@ class Metamask extends Component {
     });
   }
 
+  contractCall = async (event, abi) => {
+    event.preventDefault();
+    for (const input of abi.inputs) {
+      // TODO: encode form input as contract call
+      console.log(this.state.contractData[input.key]);
+    }
+  };
+
   addStatusMessage = async (...msgs: string) => {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
@@ -438,7 +446,19 @@ class Metamask extends Component {
     return (
       <>
         {abifun.inputs.map((funcInput, i) => {
-          return <span key={abifun.key}>{funcInput.name}, </span>;
+          return (
+            <input
+              id={funcInput.key}
+              key={funcInput.key}
+              type="text"
+              placeholder={funcInput.name + " / " + funcInput.type}
+              onChange={(e) => {
+                let s = { ...this.state.contractData };
+                s[funcInput.key] = e.target.value;
+                this.setState({ contractData: s });
+              }}
+            ></input>
+          );
         })}
       </>
     );
@@ -475,11 +495,19 @@ class Metamask extends Component {
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
-              <div key={entry.key} className="block">
-                <div key={entry.name.key + "name"} className="abifunname block">
-                  {entry.name.value}(
-                </div>
-                {this.renderAbiFun(entry)})
+              <div key={entry.name.key} className="block">
+                <form
+                  id={entry.key}
+                  key={entry.key}
+                  onSubmit={(event) => {
+                    this.contractCall(event, entry);
+                  }}
+                >
+                  {entry.name.value}({this.renderAbiFun(entry)})
+                  <button className="btn" type="submit">
+                    Create Calldata
+                  </button>
+                </form>
               </div>
             );
           }
@@ -491,7 +519,7 @@ class Metamask extends Component {
   render() {
     return (
       <div>
-        {this.renderAbi(L1Bridge.abi)}
+        <div>{this.renderAbi(L1Bridge.abi)}</div>
         {this.renderMetamask()}
         {this.state.statusMessage.map((msg) => {
           return (
