@@ -67,6 +67,7 @@ class Metamask extends Component {
     var abi = undefined;
     reader.onload = (evt) => {
       var content = JSON.parse(evt.target.result);
+      console.log(content);
       if (content.abi) {
         abi = content.abi;
       } else {
@@ -74,7 +75,6 @@ class Metamask extends Component {
       }
       this.setState({ abi: abi });
     };
-    console.log(file);
   };
 
   addStatusMessage = async (...msgs: string) => {
@@ -477,6 +477,7 @@ class Metamask extends Component {
         {abifun.inputs.map((funcInput, i) => {
           return (
             <input
+              className="block mx-5 border"
               id={funcInput.key}
               key={funcInput.key}
               type="text"
@@ -494,8 +495,6 @@ class Metamask extends Component {
   }
 
   renderAbi(abi) {
-    // React.memo()?
-    // console.log("re-rendering ABI");
     let keyed = [];
     for (const fun of abi) {
       if (fun.type === "function" && fun.stateMutability != "view") {
@@ -522,17 +521,25 @@ class Metamask extends Component {
     return (
       <>
         <button
-          className="btn"
+          className="block btn btn-red m-1 object-right-top"
           type="btn"
           onClick={() => (this.overlay.current.style.display = "none")}
         >
           X
         </button>
-        <input type="file" onChange={this.handleABIUpload} accept=".json" />
+        <label for="abifile" className="m-1">
+          Select ABI
+        </label>
+        <input
+          type="file"
+          id="abifile"
+          onChange={this.handleABIUpload}
+          accept=".json"
+        />
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
-              <div key={entry.name.key} className="block">
+              <div key={entry.name.key} className="block border p-1">
                 <form
                   id={entry.key}
                   key={entry.key}
@@ -541,7 +548,7 @@ class Metamask extends Component {
                   }}
                 >
                   {entry.name.value}({this.renderAbiFun(entry)})
-                  <button className="btn" type="submit">
+                  <button className="btn block" type="submit">
                     Create Calldata
                   </button>
                 </form>
