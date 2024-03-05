@@ -27,6 +27,7 @@ class Metamask extends Component {
       inclusionWindow: 5,
       executions: [],
       statusMessage: [],
+      abi: L1Bridge.abi,
       paused: false,
     };
     this.overlay = createRef(null);
@@ -53,6 +54,27 @@ class Metamask extends Component {
     const calldata = intf.encodeFunctionData(funfrag, args);
     this.state.txform.current.setState({ txdata: calldata });
     console.log(calldata);
+  };
+
+  handleABIUpload = async (event) => {
+    console.log(event);
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    const file = event.target.files[0];
+    var reader = new FileReader();
+    reader.readAsText(file);
+    var abi = undefined;
+    reader.onload = (evt) => {
+      var content = JSON.parse(evt.target.result);
+      if (content.abi) {
+        abi = content.abi;
+      } else {
+        abi = content;
+      }
+      this.setState({ abi: abi });
+    };
+    console.log(file);
   };
 
   addStatusMessage = async (...msgs: string) => {
@@ -506,6 +528,7 @@ class Metamask extends Component {
         >
           X
         </button>
+        <input type="file" onChange={this.handleABIUpload} accept=".json" />
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
@@ -534,7 +557,7 @@ class Metamask extends Component {
     return (
       <div>
         <div ref={this.overlay} id="overlay">
-          {this.renderAbi(L1Bridge.abi)}
+          {this.renderAbi(this.state.abi)}
         </div>
         {this.renderMetamask()}
         <button
