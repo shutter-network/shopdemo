@@ -527,7 +527,7 @@ class Metamask extends Component {
         >
           X
         </button>
-        <label for="abifile" className="m-1">
+        <label htmlFor="abifile" className="m-1">
           Select ABI
         </label>
         <input
