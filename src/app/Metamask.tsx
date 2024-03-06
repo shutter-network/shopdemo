@@ -47,17 +47,14 @@ class Metamask extends Component {
     const intf = new ethers.Interface(abi);
     let args = [];
     for (const input of abifun.inputs) {
-      console.log(this.state.contractData[input.key]);
       args = [...args, this.state.contractData[input.key]];
     }
     const funfrag = intf.getFunction(abifun.name.value);
     const calldata = intf.encodeFunctionData(funfrag, args);
     this.state.txform.current.setState({ txdata: calldata });
-    console.log(calldata);
   };
 
   handleABIUpload = async (event) => {
-    console.log(event);
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
@@ -67,7 +64,6 @@ class Metamask extends Component {
     var abi = undefined;
     reader.onload = (evt) => {
       var content = JSON.parse(evt.target.result);
-      console.log(content);
       if (content.abi) {
         abi = content.abi;
       } else {
@@ -99,9 +95,9 @@ class Metamask extends Component {
   async connectToMetamask() {
     if (window.ethereum) {
       console.log("Starting...");
-      const [l1provider, l1bridge] = await queryL1(this.addStatusMessage);
-      window.l1provider = l1provider;
-      window.l1bridge = l1bridge;
+      // const [l1provider, l1bridge] = await queryL1(this.addStatusMessage);
+      // window.l1provider = l1provider;
+      // window.l1bridge = l1bridge;
       const options = {
         wasmUrl: "/shutter-crypto.wasm",
         keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
@@ -110,8 +106,8 @@ class Metamask extends Component {
       };
       const provider = new ShutterProvider(options, window.ethereum);
 
-      const connected = await checkOnboarding(this.addStatusMessage);
-      console.log(connected);
+      // const connected = await checkOnboarding(this.addStatusMessage);
+      // console.log(connected);
 
       this.setState({ provider: provider });
       console.log("provider ready");
@@ -201,7 +197,7 @@ class Metamask extends Component {
   async runEncryptor() {
     if (this.state.msgHex) {
       for (let i = 0; i < this.state.msgHex.length; i++) {
-        await delay(10);
+        await delay(1);
         let chars = this.state.msgHex.split("");
         chars[i] = "*";
         this.setState({
@@ -221,7 +217,7 @@ class Metamask extends Component {
         data: txstate.txdata,
       };
       await this.setState({ msgHex: JSON.stringify(tx_request) });
-      await this.runEncryptor();
+      this.runEncryptor();
       const send = await this.state.signer._sendTransactionTrace(
         tx_request,
         this.state.inclusionWindow,
@@ -548,7 +544,13 @@ class Metamask extends Component {
                   }}
                 >
                   {entry.name.value}({this.renderAbiFun(entry)})
-                  <button className="btn block" type="submit">
+                  <button
+                    className="btn block"
+                    type="submit"
+                    onClick={() =>
+                      (this.overlay.current.style.display = "none")
+                    }
+                  >
                     Create Calldata
                   </button>
                 </form>
@@ -568,7 +570,7 @@ class Metamask extends Component {
         </div>
         {this.renderMetamask()}
         <button
-          className="btn"
+          className="btn block"
           type="btn"
           onClick={() => (this.overlay.current.style.display = "block")}
         >

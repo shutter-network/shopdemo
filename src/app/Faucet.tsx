@@ -1,36 +1,26 @@
 import { ethers, Wallet, BrowserProvider } from "@shutter-network/shop-sdk";
+import L1Bridge from "./L1StandardBridge";
+import addresses from "./addresses";
 
 export async function fund(target_address: string) {
-  const FAUCET_ADDRESS = "0x2a0D87eA3a9E0ca33Ddd4a62C33878b58152effE";
-  const FAUCET_PK =
-    "0x83b6122c38b58e37ce42adafd43e7b402e19f4413ce6de9dc9219f50d71c3768";
-  console.log("faucet funding", target_address);
+  console.log("Running deposit");
+  return;
   if (window.ethereum) {
     try {
-      const faucetprovider = new BrowserProvider(window.ethereum);
-      const faucetsigner = new Wallet(FAUCET_PK, faucetprovider);
-      window.faucetsigner = faucetsigner;
-      const gasPrice = (await faucetprovider.getFeeData()).gasPrice;
-      console.log("gasPrice", gasPrice);
-      let txresponse = faucetsigner.sendTransaction({
-        from: FAUCET_ADDRESS,
-        to: target_address,
-        value: ethers.parseEther("1.1"),
-        nonce: await faucetprovider.getTransactionCount(FAUCET_ADDRESS),
-        gasPrice: gasPrice,
-        gasLimit: "0x5208", // 21000
-      });
-      const wait = txresponse.then((response) => {
-        console.log("response", response);
-        console.log("hash", response.hash);
-        if (response.hash) {
-          return faucetprovider.waitForTransaction(response.hash);
-        }
-      });
-      await wait;
-      console.log("funding successful");
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const bridge = new ethers.Contract(
+        addresses.L1StandardBridge,
+        L1Bridge.api,
+        signer,
+      );
+      const deposit = bridge.bridgeETH(13000, "0x", { value: 10000000000 });
+      await deposit.wait();
+
+      console.log("deposit successful");
     } catch (error) {
-      console.log("silent error in faucet");
+      console.log("error on deposit");
+      console.error(error);
     }
   }
 }
