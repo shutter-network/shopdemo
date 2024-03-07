@@ -14,7 +14,7 @@ const shopChain = {
   blockExplorerUrls: null,
 };
 
-const sepoliaChain = {
+export const sepoliaChain = {
   chainId: "0xaa36a7",
   chainName: "Sepolia",
   rpcUrls: [
@@ -36,6 +36,7 @@ export async function checkOnboarding(status: Function) {
     status("No Wallet provider!");
     return false;
   }
+  return;
   try {
     const switched = await switchShopNetwork(status);
     console.log(switched);
@@ -66,7 +67,7 @@ async function addShopNetwork(status: Function) {
   });
 }
 
-async function switchShopNetwork(status: Function) {
+export async function switchShopNetwork(status: Function) {
   const currentChain = await window.ethereum.request({ method: "eth_chainId" });
   if (currentChain != shopChain.chainId) {
     status("Trying to switch to SHOP network, please allow in wallet.");
@@ -85,7 +86,7 @@ async function addSepoliaNetwork(status: Function) {
   });
 }
 
-async function switchSepoliaNetwork(status: Function) {
+export async function switchSepoliaNetwork(status: Function) {
   const currentChain = await window.ethereum.request({ method: "eth_chainId" });
   if (currentChain != sepoliaChain.chainId) {
     status("Trying to switch to Sepolia network, please allow in wallet.");

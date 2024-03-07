@@ -6,7 +6,7 @@ import {
   init,
   decrypt,
 } from "@shutter-network/shop-sdk";
-import { checkOnboarding, queryL1 } from "./Onboarding";
+import { switchShopNetwork, checkOnboarding, queryL1 } from "./Onboarding";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
@@ -95,6 +95,7 @@ class Metamask extends Component {
   async connectToMetamask() {
     if (window.ethereum) {
       console.log("Starting...");
+      await switchShopNetwork(this.addStatusMessage);
       // const [l1provider, l1bridge] = await queryL1(this.addStatusMessage);
       // window.l1provider = l1provider;
       // window.l1bridge = l1bridge;
@@ -125,12 +126,12 @@ class Metamask extends Component {
       const accounts = await provider.send("eth_requestAccounts", []);
       const selectedAddress = accounts[0];
       let balance = await provider.getBalance(selectedAddress);
-      if (balance < 100000000000000000) {
+      if (balance < ethers.parseEther("0.1")) {
         try {
           await this.addStatusMessage(
             "Trying to auto-fund your account. Please stand by...",
           );
-          // await fund(selectedAddress);
+          await fund(this.addStatusMessage);
         } catch (error) {
           console.log("funding error:");
           console.log(error);
@@ -513,7 +514,6 @@ class Metamask extends Component {
         ];
       }
     }
-    console.log(keyed);
     return (
       <>
         <button
