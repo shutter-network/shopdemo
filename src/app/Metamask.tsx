@@ -238,25 +238,23 @@ class Metamask extends Component {
   async encryptMessage() {
     const txstate = this.state.txform.current.state;
     if (this.signer) {
-      let tx_request = {
+      let txRequest = {
         from: this.state.selectedAddress,
         to: txstate.txto,
         value: txstate.txvalue,
         data: txstate.txdata,
       };
-      await this.setState({ msgHex: JSON.stringify(tx_request) });
+      await this.setState({ msgHex: JSON.stringify(txRequest) });
       this.runEncryptor();
-      const send = await this.signer._sendTransactionTrace(
-        tx_request,
-        this.state.inclusionWindow,
-        this.listener,
-      );
-      let tx = send[1];
-      let msg = send[0];
-      let executionBlock = send[2];
+      const [msg, txResponse, executionBlock] =
+        await this.signer._sendTransactionTrace(
+          txRequest,
+          this.state.inclusionWindow,
+          this.listener,
+        );
       this.state.camera.current.control("setBlur");
       this.installBlockListener(executionBlock, this.listener);
-      tx = await tx;
+      let tx = await txResponse;
       this.listener.waitForTransaction(tx.hash).then((value) => {
         if (value.blockNumber < executionBlock && value.status == 1) {
           console.log(value.hash);
