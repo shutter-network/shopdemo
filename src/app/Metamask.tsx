@@ -6,7 +6,12 @@ import {
   init,
   decrypt,
 } from "@shutter-network/shop-sdk";
-import { switchShopNetwork, checkOnboarding, queryL1 } from "./Onboarding";
+import {
+  checkL2Balance,
+  switchShopNetwork,
+  checkOnboarding,
+  queryL1,
+} from "./Onboarding";
 import { fund } from "./Faucet";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
@@ -32,6 +37,138 @@ class Metamask extends Component {
       paused: false,
     };
     this.overlay = createRef(null);
+  }
+
+  async connectToMetamask() {
+    if (window.ethereum) {
+      console.log("Starting...");
+
+      await this.connect();
+
+      let balance = await checkL2Balance(
+        this.addStatusMessage,
+        this.selectedAddress,
+      );
+      console.log("balance is", balance);
+
+      if (balance < ethers.parseEther("0.01")) {
+        try {
+          await this.addStatusMessage(
+            "Trying to auto-fund your account. Please stand by...",
+          );
+          await fund(this.addStatusMessage);
+        } catch (error) {
+          console.log("funding error:");
+          console.log(error);
+        }
+        await this.addStatusMessage("success");
+        console.log("funding done");
+      }
+
+      await this.setupShutterProvider();
+      await this.setupWalletState();
+
+      console.log("ready.");
+    }
+  }
+
+  addStatusMessage = async (...msgs: string) => {
+    let statusMessages = [...this.state.statusMessage];
+    msgs.forEach((msg, i) => {
+      statusMessages = [
+        ...statusMessages,
+        {
+          msg: msg,
+          key:
+            Date.parse(new Date()).toString() +
+            "-" +
+            [...msg].reduce((s, c) => s + c.charCodeAt(), 0),
+        },
+      ];
+      console.log("MSG", msg);
+    });
+    console.log(JSON.stringify(statusMessages));
+    await this.setState({ statusMessage: statusMessages });
+  };
+
+  async connect() {
+    const accounts = await window.ethereum
+      .request({ method: "eth_requestAccounts" })
+      .catch((err) => {
+        if (err.code === 4001) {
+          // EIP-1193 userRejectedRequest error
+          // If this happens, the user rejected the connection request.
+          this.addStatusMessage("Please connect to MetaMask.");
+        } else {
+          console.error(err);
+        }
+      });
+    this.selectedAddress = accounts[0];
+  }
+
+  async setupShutterProvider() {
+    await switchShopNetwork(this.addStatusMessage);
+    const options = {
+      wasmUrl: "/shutter-crypto.wasm",
+      keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
+      inboxAddress: "0x4200000000000000000000000000000000000066",
+      keyBroadcastAddress: "0x4200000000000000000000000000000000000068",
+    };
+    await init(options.wasmUrl);
+    const provider = new ShutterProvider(options, window.ethereum);
+
+    console.log("provider ready");
+    const signer = await provider.getSigner(this.selectedAddress);
+    this.signer = signer;
+  }
+
+  async setupListener(balance: number) {
+    try {
+      const websock = await new ethers.WebSocketProvider(
+        "wss://socket.sepolia.staging.shutter.network",
+      );
+      this.listener = websock;
+      console.log("Using websocket listener for blocks");
+    } catch (error) {
+      console.log("Using BrowserProvider listener for blocks");
+      this.listener = this.signer.provider;
+    }
+    this.listener.on("block", (block) => {
+      this.setState({ block: block });
+      this.listener.getBalance(selectedAddress).then((newbalance) => {
+        if (newbalance && newbalance != balance) {
+          balance = newbalance;
+          balanceInEther = ethers.formatEther(balance);
+          this.setState({ balance: balanceInEther });
+        }
+      });
+      this.signer.isShutterPaused().then((paused) => {
+        if (paused != this.state.paused) {
+          this.setState({ paused: paused });
+          if (paused) {
+            addStatusMessage("Shutter is paused");
+          } else {
+            addStatusMessage("Shutter is operational");
+          }
+        }
+      });
+    });
+  }
+
+  async setupWalletState() {
+    const balance = await this.signer.provider.getBalance(this.selectedAddress);
+    let balanceInEther = ethers.formatEther(balance);
+    const block = await this.signer.provider.getBlockNumber();
+    const eonkey = await this.signer.getCurrentEonKey();
+
+    await this.setupListener(balance);
+
+    this.setState({
+      selectedAddress: this.selectedAddress,
+      balance: balanceInEther,
+      block: block,
+      eonkey: eonkey,
+    });
   }
 
   async newTx() {
@@ -75,122 +212,10 @@ class Metamask extends Component {
     };
   };
 
-  addStatusMessage = async (...msgs: string) => {
-    let statusMessages = [...this.state.statusMessage];
-    msgs.forEach((msg, i) => {
-      statusMessages = [
-        ...statusMessages,
-        {
-          msg: msg,
-          key:
-            Date.parse(new Date()).toString() +
-            "-" +
-            [...msg].reduce((s, c) => s + c.charCodeAt(), 0),
-        },
-      ];
-      console.log("MSG", msg);
-    });
-    console.log(JSON.stringify(statusMessages));
-    await this.setState({ statusMessage: statusMessages });
-  };
-
-  async connectToMetamask() {
-    if (window.ethereum) {
-      console.log("Starting...");
-      await switchShopNetwork(this.addStatusMessage);
-      // const [l1provider, l1bridge] = await queryL1(this.addStatusMessage);
-      // window.l1provider = l1provider;
-      // window.l1bridge = l1bridge;
-      const options = {
-        wasmUrl: "/shutter-crypto.wasm",
-        keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
-        inboxAddress: "0x4200000000000000000000000000000000000066",
-        keyBroadcastAddress: "0x4200000000000000000000000000000000000068",
-      };
-      const provider = new ShutterProvider(options, window.ethereum);
-
-      // const connected = await checkOnboarding(this.addStatusMessage);
-      // console.log(connected);
-
-      this.setState({ provider: provider });
-      console.log("provider ready");
-
-      try {
-        const websock = new ethers.WebSocketProvider(
-          "wss://socket.sepolia.staging.shutter.network",
-        );
-        this.listener = websock;
-        console.log("Using websocket listener for blocks");
-      } catch (error) {
-        console.log("Using BrowserProvider listener for blocks");
-        this.listener = provider;
-      }
-      const accounts = await provider.send("eth_requestAccounts", []);
-      const selectedAddress = accounts[0];
-      let balance = await provider.getBalance(selectedAddress);
-      if (balance < ethers.parseEther("0.01")) {
-        try {
-          await this.addStatusMessage(
-            "Trying to auto-fund your account. Please stand by...",
-          );
-          await fund(this.addStatusMessage);
-        } catch (error) {
-          console.log("funding error:");
-          console.log(error);
-        }
-        await this.addStatusMessage("success");
-        console.log("funding done");
-      }
-      balance = await provider.getBalance(selectedAddress);
-      let balanceInEther = ethers.formatEther(balance);
-      const block = await provider.getBlockNumber();
-      const signer = await provider.getSigner(selectedAddress);
-      signer.provider.pollingIntervall = 1000;
-      provider.pollingIntervall = 1000;
-      const eonkey = await signer.getCurrentEonKey();
-      await init(options.wasmUrl);
-
-      // For debugging
-      window.dec = decrypt;
-      window.provider = provider;
-      window.signer = signer;
-
-      this.provider = provider;
-      this.listener.on("block", (block) => {
-        this.setState({ block: block });
-        provider.getBalance(selectedAddress).then((newbalance) => {
-          if (newbalance && newbalance != balance) {
-            balance = newbalance;
-            balanceInEther = ethers.formatEther(balance);
-            this.setState({ balance: balanceInEther });
-          }
-        });
-        signer.isShutterPaused().then((paused) => {
-          if (paused != this.state.paused) {
-            this.setState({ paused: paused });
-            if (paused) {
-              addStatusMessage("Shutter is paused");
-            } else {
-              addStatusMessage("Shutter is operational");
-            }
-          }
-        });
-      });
-
-      this.setState({
-        selectedAddress: selectedAddress,
-        balance: balanceInEther,
-        block: block,
-        eonkey: eonkey,
-        signer: signer,
-      });
-    }
-  }
-
   async decryptMessage(msg: string, key: string): string {
-    if (this.state.signer) {
-      const a_msg = this.state.signer.hexKeyToArray(msg);
-      const a_key = this.state.signer.hexKeyToArray(key);
+    if (this.signer) {
+      const a_msg = this.signer.hexKeyToArray(msg);
+      const a_key = this.signer.hexKeyToArray(key);
       const decrypted = await decrypt(a_msg, a_key);
       return decrypted;
     }
@@ -212,7 +237,7 @@ class Metamask extends Component {
 
   async encryptMessage() {
     const txstate = this.state.txform.current.state;
-    if (this.state.signer) {
+    if (this.signer) {
       let tx_request = {
         from: this.state.selectedAddress,
         to: txstate.txto,
@@ -221,12 +246,11 @@ class Metamask extends Component {
       };
       await this.setState({ msgHex: JSON.stringify(tx_request) });
       this.runEncryptor();
-      const send = await this.state.signer._sendTransactionTrace(
+      const send = await this.signer._sendTransactionTrace(
         tx_request,
         this.state.inclusionWindow,
         this.listener,
       );
-      // const send = await this.state.signer.sendTransaction(tx_request)
       let tx = send[1];
       let msg = send[0];
       let executionBlock = send[2];
@@ -248,11 +272,11 @@ class Metamask extends Component {
   }
 
   async decodeShopReceipt(blocknumber: number) {
-    let blockdata = await provider.getBlock(blocknumber, true);
+    let blockdata = await this.signer.provider.getBlock(blocknumber, true);
     console.log(blockdata);
     let txhash = blockdata.getPrefetchedTransaction(0).hash;
     console.log(txhash);
-    let receipt = await provider.getTransactionReceipt(txhash);
+    let receipt = await this.signer.provider.getTransactionReceipt(txhash);
     console.log(receipt);
     const intf = new ethers.Interface(this.state.abi);
     let events = [];
@@ -367,7 +391,7 @@ class Metamask extends Component {
   }
 
   renderShutter() {
-    if (this.state.signer && !this.state.msgHex) {
+    if (this.signer && !this.state.msgHex) {
       return (
         <form onSubmit={(event) => console.log(event)}>
           <label

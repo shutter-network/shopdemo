@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, JsonRpcProvider } from "ethers";
 import L1StandardBridge from "./L1StandardBridge";
 
 const shopChain = {
@@ -30,6 +30,15 @@ export const sepoliaChain = {
   },
   blockExplorerUrls: ["https://sepolia.etherscan.io/"],
 };
+
+export async function checkL2Balance(
+  status: Function,
+  account: address,
+): number {
+  const provider = new JsonRpcProvider(shopChain.rpcUrls[0]);
+  let balance = await provider.getBalance(account);
+  return balance;
+}
 
 export async function checkOnboarding(status: Function) {
   if (!window.ethereum) {
