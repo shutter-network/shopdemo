@@ -126,7 +126,7 @@ class Metamask extends Component {
       const accounts = await provider.send("eth_requestAccounts", []);
       const selectedAddress = accounts[0];
       let balance = await provider.getBalance(selectedAddress);
-      if (balance < ethers.parseEther("0.1")) {
+      if (balance < ethers.parseEther("0.01")) {
         try {
           await this.addStatusMessage(
             "Trying to auto-fund your account. Please stand by...",

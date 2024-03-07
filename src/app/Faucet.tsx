@@ -17,7 +17,9 @@ export async function fund(status: Function) {
         signer,
       );
       const gasLimit = 130000;
-      const deposit = await bridge.bridgeETH(130000, "0x54a11e22", { value: ethers.parseEther("0.1") });
+      const deposit = await bridge.bridgeETH(130000, "0x54a11e22", {
+        value: ethers.parseEther("0.1"),
+      });
       await deposit.wait();
 
       console.log("deposit successful");
