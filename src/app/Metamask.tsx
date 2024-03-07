@@ -26,6 +26,7 @@ class Metamask extends Component {
       decryptionKey: "",
       inclusionWindow: 5,
       executions: [],
+      events: [],
       statusMessage: [],
       abi: L1Bridge.abi,
       paused: false,
@@ -38,6 +39,7 @@ class Metamask extends Component {
       msgHex: "",
       decryptionKey: "",
       executions: [],
+      events: [],
       decrypted: "",
     });
   }
@@ -252,10 +254,25 @@ class Metamask extends Component {
     console.log(txhash);
     let receipt = await provider.getTransactionReceipt(txhash);
     console.log(receipt);
-    let logdata = receipt.logs[0].data;
-    console.log("executed", logdata);
+    const intf = new ethers.Interface(this.state.abi);
+    let events = [];
+    receipt.logs.forEach((log) => {
+      console.log(log);
+      try {
+        console.log(intf.parseLog(log));
+        const ev = intf.parseLog(log);
+        events.push([ev.signature, ev.args]);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    console.log(events);
 
-    let [decryptionKey, executions] = signer.decodeExecutionReceipt(logdata);
+    let executionlog = receipt.logs[receipt.logs.length - 1].data;
+    console.log("executed", executionlog);
+
+    let [decryptionKey, executions] = ethers.decodeRlp(executionlog);
+
     executions = executions.map((x, xidx) =>
       x.map((inner, iidx) => [xidx.toString() + "_" + iidx.toString(), inner]),
     );
@@ -267,18 +284,25 @@ class Metamask extends Component {
     );
     console.log("decrypted", decrypted);
 
-    const [to, data, value] = this.state.signer.decodeExecutionReceipt(
+    const [to, data, value] = ethers.decodeRlp(
       "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
     );
     this.state.camera.current.control("releaseShutter", { txto: to });
+    var decoded_value;
+    if (value === "0x") {
+      decoded_value = 0;
+    } else {
+      decoded_value = parseInt(value, 16);
+    }
 
     this.setState({
       decryptionKey: decryptionKey.slice(2),
       executions: executions,
+      events: events,
       decrypted: JSON.stringify(
         [
           { version: decrypted[0] },
-          { to: to, data: data, value: parseInt(value, 16) },
+          { to: to, data: data, value: decoded_value },
         ],
         null,
         2,
@@ -430,6 +454,17 @@ class Metamask extends Component {
                   <span key={exe[2][0]}>Log#: {exe[2][1]}</span>
                 </div>
               );
+            })}
+            <label
+              htmlFor="events"
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Events:
+            </label>
+          </div>
+          <div id="events">
+            {this.state.events.map((ev, idx) => {
+              return <div key={idx}>{ev[0] + " " + ev[1]}</div>;
             })}
           </div>
           <label
