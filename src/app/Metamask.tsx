@@ -18,6 +18,7 @@ import Transaction from "./Transaction";
 import Camera from "./Camera";
 import uuidv3 from "uuid/v3";
 import L1Bridge from "./L1StandardBridge";
+import mintable from "./mintableERC20";
 
 const BLOCKTIME = 5;
 
@@ -36,7 +37,7 @@ class Metamask extends Component {
       executions: [],
       events: [],
       statusMessage: [],
-      abi: L1Bridge.abi,
+      abi: mintable,
       paused: false,
       l1Balance: 0,
       l2Balance: 0,
