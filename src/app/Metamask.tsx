@@ -559,8 +559,8 @@ class Metamask extends Component {
         >
           X
         </button>
-        <div className="flex flex-col justify-center">
-          <div>
+        <div className="flex flex-row flex-wrap justify-center items-center">
+          <div className="w-9/12">
             <Image
               src="/Battery_empty.svg"
               style={{ width: "200px", height: "auto" }}
@@ -570,18 +570,18 @@ class Metamask extends Component {
               priority={true}
             />
           </div>
-          <div>
+          <div className="w-9/12">
             {ethers.formatEther(this.state.l2Balance)} SHOP ETH is not enough to
             continue.
           </div>
-          <div>
+          <div className="w-9/12">
             You can <pre className="inline-block bg-gray-200">depositETH</pre>{" "}
             on the Sepolia Bridge to get SHOP ETH.
           </div>
-          <div>
+          <div className="w-9/12">
             Available Sepolia ETH: {ethers.formatEther(this.state.l1Balance)}
           </div>
-          <div>
+          <div className="w-9/12">
             <input
               type="range"
               step="1"
@@ -594,11 +594,11 @@ class Metamask extends Component {
               }
             />
           </div>
-          <div>
+          <div className="w-9/12">
             Clicking <pre className="inline-block bg-gray-200">Deposit</pre>{" "}
             will switch to Sepolia Network and ask for a signature.
           </div>
-          <div className="btn" onClick={() => this.runDeposit()}>
+          <div className="w-9/12 btn" onClick={() => this.runDeposit()}>
             Deposit {ethers.formatEther(this.state.depositValue)} Sepolia ETH.
           </div>
         </div>
