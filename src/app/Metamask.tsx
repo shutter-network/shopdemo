@@ -411,36 +411,45 @@ class Metamask extends Component {
   renderShutter() {
     if (this.signer && !this.state.msgHex) {
       return (
-        <form onSubmit={(event) => console.log(event)}>
-          <label
-            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            htmlFor="inclusionWindow"
-          >
-            Execute in {this.state.inclusionWindow} blocks/
-            {this.state.inclusionWindow * BLOCKTIME}s
-          </label>
-          <input
-            value={this.state.inclusionWindow}
-            id="inclusionWindow"
-            type="range"
-            min="2"
-            max="20"
-            onChange={(e) =>
-              this.setState({ inclusionWindow: parseInt(e.target.value) })
-            }
-          />
-          <Transaction ref={this.state.txform} />
+        <>
+          <form onSubmit={(event) => console.log(event)}>
+            <label
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              htmlFor="inclusionWindow"
+            >
+              Execute in {this.state.inclusionWindow} blocks/
+              {this.state.inclusionWindow * BLOCKTIME}s
+            </label>
+            <input
+              value={this.state.inclusionWindow}
+              id="inclusionWindow"
+              type="range"
+              min="2"
+              max="20"
+              onChange={(e) =>
+                this.setState({ inclusionWindow: parseInt(e.target.value) })
+              }
+            />
+            <Transaction ref={this.state.txform} />
+            <button
+              type="button"
+              disabled={this.state.paused}
+              className={
+                this.state.paused ? "btn btn-disabled disabled" : "btn btn-red"
+              }
+              onClick={() => this.encryptMessage()}
+            >
+              Encrypt Transaction
+            </button>
+          </form>
           <button
-            type="button"
-            disabled={this.state.paused}
-            className={
-              this.state.paused ? "btn btn-disabled disabled" : "btn btn-red"
-            }
-            onClick={() => this.encryptMessage()}
+            className="btn block"
+            type="btn"
+            onClick={() => (this.overlay.current.style.display = "block")}
           >
-            Encrypt Transaction
+            Show ABI
           </button>
-        </form>
+        </>
       );
     }
     if (this.state.msgHex) {
@@ -730,13 +739,6 @@ class Metamask extends Component {
           {this.renderAbi(this.state.abi)}
         </div>
         {this.renderMetamask()}
-        <button
-          className="btn block"
-          type="btn"
-          onClick={() => (this.overlay.current.style.display = "block")}
-        >
-          Show ABI
-        </button>
         {this.state.statusMessage.map((msg) => {
           return (
             <span className="inline-block" key={msg.key}>
