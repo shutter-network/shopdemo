@@ -7,12 +7,13 @@ import {
   decrypt,
 } from "@shutter-network/shop-sdk";
 import {
+  checkL1Balance,
   checkL2Balance,
   switchShopNetwork,
   checkOnboarding,
   queryL1,
 } from "./Onboarding";
-import { fund } from "./Faucet";
+import { switchAndDeposit } from "./Deposit";
 import Transaction from "./Transaction";
 import Camera from "./Camera";
 import uuidv3 from "uuid/v3";
@@ -21,6 +22,8 @@ import L1Bridge from "./L1StandardBridge";
 const BLOCKTIME = 5;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const bigIntMax = (...args) => args.reduce((m, e) => (e > m ? e : m));
 
 class Metamask extends Component {
   constructor(props) {
@@ -35,8 +38,12 @@ class Metamask extends Component {
       statusMessage: [],
       abi: L1Bridge.abi,
       paused: false,
+      l1Balance: 0,
+      l2Balance: 0,
+      depositValue: 0,
     };
     this.overlay = createRef(null);
+    this.recharge = createRef(null);
   }
 
   async connectToMetamask() {
@@ -44,26 +51,6 @@ class Metamask extends Component {
       console.log("Starting...");
 
       await this.connect();
-
-      let balance = await checkL2Balance(
-        this.addStatusMessage,
-        this.selectedAddress,
-      );
-      console.log("balance is", balance);
-
-      if (balance < ethers.parseEther("0.01")) {
-        try {
-          await this.addStatusMessage(
-            "Trying to auto-fund your account. Please stand by...",
-          );
-          await fund(this.addStatusMessage);
-        } catch (error) {
-          console.log("funding error:");
-          console.log(error);
-        }
-        await this.addStatusMessage("success");
-        console.log("funding done");
-      }
 
       await this.setupShutterProvider();
       await this.setupWalletState();
@@ -135,11 +122,11 @@ class Metamask extends Component {
     }
     this.listener.on("block", (block) => {
       this.setState({ block: block });
-      this.listener.getBalance(selectedAddress).then((newbalance) => {
+      this.listener.getBalance(this.selectedAddress).then((newbalance) => {
         if (newbalance && newbalance != balance) {
           balance = newbalance;
-          balanceInEther = ethers.formatEther(balance);
-          this.setState({ balance: balanceInEther });
+          // FIXME: state changes here are swallowed
+          () => this.setState({ l2Balance: balance });
         }
       });
       this.signer.isShutterPaused().then((paused) => {
@@ -156,8 +143,7 @@ class Metamask extends Component {
   }
 
   async setupWalletState() {
-    const balance = await this.signer.provider.getBalance(this.selectedAddress);
-    let balanceInEther = ethers.formatEther(balance);
+    let balance = await this.signer.provider.getBalance(this.selectedAddress);
     const block = await this.signer.provider.getBlockNumber();
     const eonkey = await this.signer.getCurrentEonKey();
 
@@ -165,7 +151,7 @@ class Metamask extends Component {
 
     this.setState({
       selectedAddress: this.selectedAddress,
-      balance: balanceInEther,
+      l2Balance: balance,
       block: block,
       eonkey: eonkey,
     });
@@ -179,6 +165,11 @@ class Metamask extends Component {
       events: [],
       decrypted: "",
     });
+  }
+
+  async runDeposit() {
+    await switchAndDeposit(this.state.depositValue, this.addStatusMessage);
+    this.recharge.current.style.display = "none";
   }
 
   contractCall = async (event, abi, abifun) => {
@@ -236,37 +227,63 @@ class Metamask extends Component {
   }
 
   async encryptMessage() {
+    console.log(this.state.l2Balance);
+    if (this.state.l2Balance < ethers.parseEther("0.01")) {
+      this.recharge.current.style.display = "block";
+      await this.checkBalances();
+      return;
+    }
     const txstate = this.state.txform.current.state;
-    if (this.signer) {
-      let txRequest = {
-        from: this.state.selectedAddress,
-        to: txstate.txto,
-        value: txstate.txvalue,
-        data: txstate.txdata,
-      };
-      await this.setState({ msgHex: JSON.stringify(txRequest) });
-      this.runEncryptor();
-      const [msg, txResponse, executionBlock] =
-        await this.signer._sendTransactionTrace(
-          txRequest,
-          this.state.inclusionWindow,
-          this.listener,
-        );
-      this.state.camera.current.control("setBlur");
-      this.installBlockListener(executionBlock, this.listener);
-      let tx = await txResponse;
-      this.listener.waitForTransaction(tx.hash).then((value) => {
+    if (!this.signer) {
+      return;
+    }
+    let txRequest = {
+      from: this.state.selectedAddress,
+      to: txstate.txto,
+      value: txstate.txvalue,
+      data: txstate.txdata,
+    };
+    await this.setState({ msgHex: JSON.stringify(txRequest) });
+
+    this.runEncryptor();
+
+    const [msg, txResponse, executionBlock] =
+      await this.signer._sendTransactionTrace(
+        txRequest,
+        this.state.inclusionWindow,
+        this.listener,
+      );
+    this.state.camera.current.control("setBlur");
+    await executionBlock;
+
+    if (!executionBlock) {
+      console.err("executionBlock not resolved");
+      return;
+    }
+    const exeListener = this.installBlockListener(
+      executionBlock,
+      this.listener,
+    );
+
+    let tx = await txResponse;
+    this.listener
+      .waitForTransaction(tx.hash)
+      .then((value) => {
         if (value.blockNumber < executionBlock && value.status == 1) {
           console.log(value.hash);
           this.state.camera.current.control("setFocus");
         } else {
           console.log("Inbox tx failed/too late!", value);
+          this.addStatusMessage("Inbox tx failed/too late!");
+          this.state.camera.current.control("unsetMotive");
         }
+      })
+      .catch((error) => {
+        console.log(error);
       });
-      const msgHex = Buffer.from(msg).toString("hex");
-      console.log("encryptedHex", msgHex);
-      this.setState({ msg: msg, msgHex: msgHex });
-    }
+    const msgHex = Buffer.from(msg).toString("hex");
+    console.log("encryptedHex", msgHex);
+    this.setState({ msg: msg, msgHex: msgHex });
   }
 
   async decodeShopReceipt(blocknumber: number) {
@@ -379,7 +396,9 @@ class Metamask extends Component {
             className="logo float-left"
           />
           <p>Welcome {this.state.selectedAddress}</p>
-          <p>Your L2 ETH Balance is: {this.state.balance}</p>
+          <p>
+            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)}
+          </p>
           <p>Current L2 Block is: {this.state.block} </p>
           <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
           {this.renderShutter()}
@@ -510,6 +529,82 @@ class Metamask extends Component {
     }
   }
 
+  async checkBalances() {
+    const l1Balance = await checkL1Balance(
+      this.addStatusMessage,
+      this.selectedAddress,
+    );
+    const l2Balance = await checkL2Balance(
+      this.addStatusMessage,
+      this.selectedAddress,
+    );
+    this.setState({
+      l1Balance: l1Balance,
+      l2Balance: l2Balance,
+      depositValue: bigIntMax(
+        ethers.parseEther("0.01"),
+        ethers.parseEther("0.01") - l2Balance,
+      ),
+    });
+  }
+
+  renderRecharge() {
+    return (
+      <>
+        <button
+          className="block btn btn-red m-1 object-right-top"
+          type="btn"
+          onClick={() => (this.recharge.current.style.display = "none")}
+        >
+          X
+        </button>
+        <div className="flex flex-col justify-center">
+          <div>
+            <Image
+              src="/Battery_empty.svg"
+              style={{ width: "200px", height: "auto" }}
+              width="0"
+              height="0"
+              alt="not enough funds"
+              priority={true}
+            />
+          </div>
+          <div>
+            {ethers.formatEther(this.state.l2Balance)} SHOP ETH is not enough to
+            continue.
+          </div>
+          <div>
+            You can <pre className="inline-block bg-gray-200">depositETH</pre>{" "}
+            on the Sepolia Bridge to get SHOP ETH.
+          </div>
+          <div>
+            Available Sepolia ETH: {ethers.formatEther(this.state.l1Balance)}
+          </div>
+          <div>
+            <input
+              type="range"
+              step="1"
+              onChange={(evt) =>
+                this.setState({
+                  depositValue:
+                    (BigInt(evt.target.value) * this.state.l1Balance) /
+                    BigInt(100),
+                })
+              }
+            />
+          </div>
+          <div>
+            Clicking <pre className="inline-block bg-gray-200">Deposit</pre>{" "}
+            will switch to Sepolia Network and ask for a signature.
+          </div>
+          <div className="btn" onClick={() => this.runDeposit()}>
+            Deposit {ethers.formatEther(this.state.depositValue)} Sepolia ETH.
+          </div>
+        </div>
+      </>
+    );
+  }
+
   abifun2sig(abifun) {
     const sig =
       abifun.name +
@@ -548,7 +643,7 @@ class Metamask extends Component {
     );
   }
 
-  renderAbi(abi) {
+  transformAbiForRender(abi: Object): Object {
     let keyed = [];
     for (const fun of abi) {
       if (fun.type === "function" && fun.stateMutability != "view") {
@@ -571,6 +666,11 @@ class Metamask extends Component {
         ];
       }
     }
+    return keyed;
+  }
+
+  renderAbi(abi: Object) {
+    const keyed = this.transformAbiForRender(abi);
     return (
       <>
         <button
@@ -622,6 +722,9 @@ class Metamask extends Component {
   render() {
     return (
       <div>
+        <div ref={this.recharge} id="recharge">
+          {this.renderRecharge()}
+        </div>
         <div ref={this.overlay} id="overlay">
           {this.renderAbi(this.state.abi)}
         </div>

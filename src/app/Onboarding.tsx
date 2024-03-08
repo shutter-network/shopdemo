@@ -31,11 +31,26 @@ export const sepoliaChain = {
   blockExplorerUrls: ["https://sepolia.etherscan.io/"],
 };
 
+export async function checkL1Balance(
+  status: Function,
+  account: address,
+): number {
+  return checkBalance(sepoliaChain.rpcUrls[0], status, account);
+}
+
 export async function checkL2Balance(
   status: Function,
   account: address,
 ): number {
-  const provider = new JsonRpcProvider(shopChain.rpcUrls[0]);
+  return checkBalance(shopChain.rpcUrls[0], status, account);
+}
+
+async function checkBalance(
+  rpc: string,
+  status: Function,
+  account: address,
+): number {
+  const provider = new JsonRpcProvider(rpc);
   let balance = await provider.getBalance(account);
   return balance;
 }

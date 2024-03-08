@@ -172,6 +172,19 @@ p.ellipsis {
   .inactive {
     filter: contrast(1%);
   }
+  #recharge {
+    position: fixed;
+    display: none;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    right: 10%;
+    bottom: 10%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9;
+    overflow-y: scroll;
+  }
   #overlay {
     position: fixed;
     display: none;

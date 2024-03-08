@@ -140,6 +140,9 @@ const Camera = forwardRef((props, ref) => {
         case "setCountdown":
           setCounter(arg.time * arg.blockTime);
           break;
+        case "unsetMotive":
+          setMotive({ background: "rgb(0,0,0)" });
+          break;
         default:
           console.log("empty cmd");
       }
