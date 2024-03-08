@@ -180,6 +180,9 @@ class Metamask extends Component {
     for (const input of abifun.inputs) {
       args = [...args, this.state.contractData[input.key]];
     }
+    if (abifun.stateMutability != "payable") {
+        this.state.txform.current.setState({ txvalue: 0 })
+    }
     const funfrag = intf.getFunction(abifun.name.value);
     const calldata = intf.encodeFunctionData(funfrag, args);
     this.state.txform.current.setState({ txdata: calldata });
