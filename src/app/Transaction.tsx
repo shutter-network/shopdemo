@@ -17,19 +17,28 @@ class Transaction extends Component {
     return (
       <div>
         <div className="grid grid-cols-8">
-        <label htmlFor="txto" className="col-span-8">Receiver:</label>
-        <input
-          type="input"
-          id="txto"
-          value={this.state.txto}
-          onChange={(event) => this.setState({ txto: event.target.value })}
-          className="col-span-6 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-        />
+          <label htmlFor="txto" className="col-span-8">
+            Receiver:
+          </label>
+          <input
+            type="input"
+            id="txto"
+            value={this.state.txto}
+            onChange={(event) => this.setState({ txto: event.target.value })}
+            className="col-span-6 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
+          />
           <button
             className="btn col-span-2"
             type="btn"
-            onClick={(evt) => {evt.preventDefault(); this.overlay.current.style.display = "block" }}
-            style={{ display: this.state.receiverIsContract ? "inline-block": "hidden" }}
+            onClick={(evt) => {
+              evt.preventDefault();
+              this.overlay.current.style.display = "block";
+            }}
+            style={{
+              display: this.state.receiverIsContract
+                ? "inline-block"
+                : "hidden",
+            }}
           >
             Use ABI
           </button>

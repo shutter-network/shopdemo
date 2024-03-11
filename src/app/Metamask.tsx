@@ -145,7 +145,9 @@ class Metamask extends Component {
         if (paused != this.state.paused) {
           this.setState({ paused: paused });
           if (paused) {
-            this.addStatusMessage('!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>');
+            this.addStatusMessage(
+              '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>',
+            );
           } else {
             this.addStatusMessage(".Shutter is operational");
           }
@@ -192,7 +194,7 @@ class Metamask extends Component {
       args = [...args, this.state.contractData[input.key]];
     }
     if (abifun.stateMutability != "payable") {
-        this.state.txform.current.setState({ txvalue: 0 })
+      this.state.txform.current.setState({ txvalue: 0 });
     }
     const funfrag = intf.getFunction(abifun.name.value);
     const calldata = intf.encodeFunctionData(funfrag, args);
@@ -755,9 +757,11 @@ class Metamask extends Component {
         {this.renderMetamask()}
         {this.state.statusMessage.map((entry) => {
           return (
-            <span className={"block " + entry.color} key={entry.key}
-              dangerouslySetInnerHTML={{__html: entry.msg}}>
-            </span>
+            <span
+              className={"block " + entry.color}
+              key={entry.key}
+              dangerouslySetInnerHTML={{ __html: entry.msg }}
+            ></span>
           );
         })}
       </div>
