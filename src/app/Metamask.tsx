@@ -402,7 +402,12 @@ class Metamask extends Component {
             height="100"
             alt="shutterized OPTIMISM demo"
             priority={true}
+            className="mr-4"
           />
+          <div>
+            Welcome to shutterized optimism on Sepolia. Send shutter encrypted
+            transactions with this dApp.
+          </div>
           <button
             type="button"
             className="btn"
@@ -420,7 +425,7 @@ class Metamask extends Component {
             width="100"
             height="100"
             alt="shutterized OPTIMISM demo"
-            className="logo float-left"
+            className="logo float-left mr-4"
           />
           <p>Welcome {this.state.selectedAddress}</p>
           <p>
