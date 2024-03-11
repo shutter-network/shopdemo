@@ -134,9 +134,9 @@ class Metamask extends Component {
         if (paused != this.state.paused) {
           this.setState({ paused: paused });
           if (paused) {
-            addStatusMessage("Shutter is paused");
+            this.addStatusMessage("Shutter is paused");
           } else {
-            addStatusMessage("Shutter is operational");
+            this.addStatusMessage("Shutter is operational");
           }
         }
       });
