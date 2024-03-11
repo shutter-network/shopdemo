@@ -69,6 +69,10 @@ class Transaction extends Component {
     let valid = !isNaN(valueInput);
     if (valid && this.state.txValueDisplayWei) {
       value = parseInt(valueInput);
+      if (ethers.formatUnits(value, 0) != valueInput) {
+        valid = false;
+        validation = "wei must be an integer (no decimals allowed)";
+      }
     }
     if (valid && !this.state.txValueDisplayWei) {
       try {
@@ -101,6 +105,9 @@ class Transaction extends Component {
   };
 
   toggleValueInputFormat = (evt) => {
+    if (!this.state.txValueValid) {
+      return;
+    }
     let valueInput = this.state.txValueInput;
     if (this.state.txValueDisplayWei) {
       // change to ETH display
@@ -109,9 +116,13 @@ class Transaction extends Component {
       // change to wei display
       valueInput = ethers.formatUnits(this.state.txvalue, 0);
     }
+    this.txvalue.current.style.borderColor = "";
+    this.txvalue.current.style.backgroundColor = "rgba(0, 255, 0, 0.25)";
     this.setState({
       txValueDisplayWei: !this.state.txValueDisplayWei,
       txValueInput: valueInput.toString(),
+      txValueValid: true,
+      txValueMsg: "",
     });
   };
 
