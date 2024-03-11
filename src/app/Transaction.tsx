@@ -6,6 +6,7 @@ class Transaction extends Component {
   constructor(props, ref) {
     super(props);
     this.overlay = props.overlay;
+    this.recharge = props.recharge;
     this.checkReceiverIsContract = props.checkReceiverIsContract;
     this.txto = createRef(null);
     this.txvalue = createRef(null);
@@ -62,9 +63,14 @@ class Transaction extends Component {
     });
   };
 
+  toggleRecharge = () => {
+    this.recharge.current.style.display = "block";
+  };
+
   txValueChanged = (event) => {
     const valueInput = event.target.value;
     let value;
+    let moreFunds = false;
     let validation = "";
     let valid = !isNaN(valueInput);
     if (valid && this.state.txValueDisplayWei) {
@@ -87,6 +93,7 @@ class Transaction extends Component {
     } else if (value > this.state.availableBalance) {
       validation = "not enough funds";
       valid = false;
+      moreFunds = true;
     }
     if (valid === false) {
       this.txvalue.current.style.borderColor = "red";
@@ -101,11 +108,12 @@ class Transaction extends Component {
       txValueMsg: validation,
       txValueInput: valueInput,
       txvalue: value,
+      moreFunds: moreFunds,
     });
   };
 
   toggleValueInputFormat = (evt) => {
-    if (!this.state.txValueValid) {
+    if (this.state.txValueValid === false) {
       return;
     }
     let valueInput = this.state.txValueInput;
@@ -172,8 +180,13 @@ class Transaction extends Component {
             onChange={this.txValueChanged}
             className="col-span-8 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
           />
-          <span className="col-span-8 text-red-400">
+          <span className="col-span-4 text-red-400">
             {this.state.txValueMsg}
+          </span>
+          <span className={this.state.moreFunds ? "col-span-4" : "hidden"}>
+            <a className="underline" onClick={this.toggleRecharge}>
+              Click here to add more funds.
+            </a>
           </span>
           <label htmlFor="txdata" className="col-span-8">
             Data:

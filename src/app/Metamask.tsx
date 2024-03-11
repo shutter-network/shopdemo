@@ -461,6 +461,7 @@ class Metamask extends Component {
               checkReceiverIsContract={this.checkReceiverIsContract}
               availableBalance={this.state.l2Balance}
               overlay={this.overlay}
+              recharge={this.recharge}
             />
             <button
               type="button"
