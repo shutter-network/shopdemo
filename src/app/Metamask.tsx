@@ -186,6 +186,15 @@ class Metamask extends Component {
     this.recharge.current.style.display = "none";
   }
 
+  checkReceiverIsContract = async (address) => {
+    if (ethers.isAddress(address)) {
+      const code = await this.signer.provider.getCode(address);
+      return code != "0x";
+    } else {
+      return false;
+    }
+  };
+
   contractCall = async (event, abi, abifun) => {
     event.preventDefault();
     const intf = new ethers.Interface(abi);
@@ -446,7 +455,11 @@ class Metamask extends Component {
                 this.setState({ inclusionWindow: parseInt(e.target.value) })
               }
             />
-            <Transaction ref={this.state.txform} overlay={this.overlay} />
+            <Transaction
+              ref={this.state.txform}
+              checkReceiverIsContract={this.checkReceiverIsContract}
+              overlay={this.overlay}
+            />
             <button
               type="button"
               disabled={this.state.paused}
