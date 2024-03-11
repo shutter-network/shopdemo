@@ -8,11 +8,17 @@ class Transaction extends Component {
     this.overlay = props.overlay;
     this.checkReceiverIsContract = props.checkReceiverIsContract;
     this.txto = createRef(null);
+    this.txvalue = createRef(null);
     this.state = {
+      availableBalance: props.availableBalance,
       txto: "",
       txToMsg: "",
       txToValid: null,
       txvalue: 1,
+      txValueInput: "1",
+      txValueValid: null,
+      txValueMsg: "",
+      txValueDisplayWei: true,
       txdata: "",
       receiverIsContract: false,
     };
@@ -56,6 +62,59 @@ class Transaction extends Component {
     });
   };
 
+  txValueChanged = (event) => {
+    const valueInput = event.target.value;
+    let value;
+    let validation = "";
+    let valid = !isNaN(valueInput);
+    if (valid && this.state.txValueDisplayWei) {
+      value = parseInt(valueInput);
+    }
+    if (valid && !this.state.txValueDisplayWei) {
+      try {
+        value = ethers.parseEther(valueInput);
+      } catch (err) {
+        valid = false;
+        validation = err.shortMessage;
+      }
+    }
+    if (!valid && validation === "") {
+      validation = "not a number";
+    } else if (value > this.state.availableBalance) {
+      validation = "not enough funds";
+      valid = false;
+    }
+    if (valid === false) {
+      this.txvalue.current.style.borderColor = "red";
+      this.txvalue.current.style.backgroundColor = "rgba(255, 0, 0, 0.25)";
+    } else if (valid === true) {
+      this.txvalue.current.style.borderColor = "";
+      this.txvalue.current.style.backgroundColor = "rgba(0, 255, 0, 0.25)";
+    }
+
+    this.setState({
+      txValueValid: valid,
+      txValueMsg: validation,
+      txValueInput: valueInput,
+      txvalue: value,
+    });
+  };
+
+  toggleValueInputFormat = (evt) => {
+    let valueInput = this.state.txValueInput;
+    if (this.state.txValueDisplayWei) {
+      // change to ETH display
+      valueInput = ethers.formatUnits(this.state.txvalue, 18);
+    } else {
+      // change to wei display
+      valueInput = ethers.formatUnits(this.state.txvalue, 0);
+    }
+    this.setState({
+      txValueDisplayWei: !this.state.txValueDisplayWei,
+      txValueInput: valueInput.toString(),
+    });
+  };
+
   renderTransaction() {
     return (
       <div>
@@ -75,6 +134,7 @@ class Transaction extends Component {
           <button
             className="btn col-span-1"
             type="btn"
+            disabled={!this.state.receiverIsContract}
             onClick={(evt) => {
               evt.preventDefault();
               this.overlay.current.style.display = "block";
@@ -86,23 +146,35 @@ class Transaction extends Component {
             Use ABI
           </button>
           <span className="col-span-8 text-red-400">{this.state.txToMsg}</span>
+          <label htmlFor="txvalue" className="col-span-8">
+            Value (
+            <a className="underline" onClick={this.toggleValueInputFormat}>
+              {this.state.txValueDisplayWei ? "in wei" : "in ETH"}
+            </a>
+            ):
+          </label>
+          <input
+            type="input"
+            id="txvalue"
+            ref={this.txvalue}
+            value={this.state.txValueInput}
+            onChange={this.txValueChanged}
+            className="col-span-8 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
+          />
+          <span className="col-span-8 text-red-400">
+            {this.state.txValueMsg}
+          </span>
+          <label htmlFor="txdata" className="col-span-8">
+            Data:
+          </label>
+          <textarea
+            type="input"
+            id="txdata"
+            value={this.state.txdata}
+            onChange={(event) => this.setState({ txdata: event.target.value })}
+            className="col-span-8 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
+          />
         </div>
-        <label htmlFor="txvalue">Value (in wei):</label>
-        <input
-          type="input"
-          id="txvalue"
-          value={this.state.txvalue}
-          onChange={(event) => this.setState({ txvalue: event.target.value })}
-          className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-        />
-        <label htmlFor="txdata">Data:</label>
-        <textarea
-          type="input"
-          id="txdata"
-          value={this.state.txdata}
-          onChange={(event) => this.setState({ txdata: event.target.value })}
-          className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-        />
       </div>
     );
   }

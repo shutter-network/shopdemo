@@ -136,6 +136,7 @@ class Metamask extends Component {
       this.setState({ block: block });
       this.listener.getBalance(this.selectedAddress).then((newbalance) => {
         if (newbalance && newbalance != balance) {
+          this.state.txform.current.setState({ availableBalance: newbalance });
           balance = newbalance;
           // FIXME: state changes here are swallowed
           () => this.setState({ l2Balance: balance });
@@ -458,6 +459,7 @@ class Metamask extends Component {
             <Transaction
               ref={this.state.txform}
               checkReceiverIsContract={this.checkReceiverIsContract}
+              availableBalance={this.state.l2Balance}
               overlay={this.overlay}
             />
             <button
