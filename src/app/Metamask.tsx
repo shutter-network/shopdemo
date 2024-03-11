@@ -446,7 +446,7 @@ class Metamask extends Component {
                 this.setState({ inclusionWindow: parseInt(e.target.value) })
               }
             />
-            <Transaction ref={this.state.txform} />
+            <Transaction ref={this.state.txform} overlay={this.overlay} />
             <button
               type="button"
               disabled={this.state.paused}
@@ -458,13 +458,6 @@ class Metamask extends Component {
               Encrypt Transaction
             </button>
           </form>
-          <button
-            className="btn block"
-            type="btn"
-            onClick={() => (this.overlay.current.style.display = "block")}
-          >
-            Show ABI
-          </button>
         </>
       );
     }

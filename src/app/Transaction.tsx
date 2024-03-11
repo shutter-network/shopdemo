@@ -4,7 +4,7 @@ import BlockiesSvg from "blockies-react-svg";
 class Transaction extends Component {
   constructor(props, ref) {
     super(props);
-    console.log(ref);
+    this.overlay = props.overlay;
     this.state = {
       txto: "",
       txvalue: 1,
