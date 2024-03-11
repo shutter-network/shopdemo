@@ -63,10 +63,21 @@ class Metamask extends Component {
   addStatusMessage = async (...msgs: string) => {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
+      console.log(msg.slice(0, 1));
+      var color = "text-black";
+      if (msg.slice(0, 1) === "!") {
+        color = "text-red-400";
+        msg = msg.slice(1);
+      }
+      if (msg.slice(0, 1) === ".") {
+        color = "text-blue-400";
+        msg = msg.slice(1);
+      }
       statusMessages = [
         ...statusMessages,
         {
           msg: msg,
+          color: color,
           key:
             Date.parse(new Date()).toString() +
             "-" +
@@ -134,9 +145,9 @@ class Metamask extends Component {
         if (paused != this.state.paused) {
           this.setState({ paused: paused });
           if (paused) {
-            this.addStatusMessage("Shutter is paused");
+            this.addStatusMessage('!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>');
           } else {
-            this.addStatusMessage("Shutter is operational");
+            this.addStatusMessage(".Shutter is operational");
           }
         }
       });
@@ -742,10 +753,10 @@ class Metamask extends Component {
           {this.renderAbi(this.state.abi)}
         </div>
         {this.renderMetamask()}
-        {this.state.statusMessage.map((msg) => {
+        {this.state.statusMessage.map((entry) => {
           return (
-            <span className="inline-block" key={msg.key}>
-              {msg.msg}
+            <span className={"block " + entry.color} key={entry.key}
+              dangerouslySetInnerHTML={{__html: entry.msg}}>
             </span>
           );
         })}
