@@ -21,7 +21,7 @@ export async function switchAndDeposit(amount: number, status: Function) {
         signer,
       );
       const gasLimit = 130000;
-      const deposit = await bridge.bridgeETH(130000, "0x54a11e22", {
+      const deposit = await bridge.depositETH(130000, "0x54a11e22", {
         value: amount,
       });
       await deposit.wait();
