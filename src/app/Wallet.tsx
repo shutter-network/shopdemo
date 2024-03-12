@@ -184,13 +184,25 @@ class Wallet extends Component {
     });
   }
 
-  async newTx() {
+  newTx = async () => {
     await this.setState({
       msgHex: "",
       decryptionKey: "",
       executions: [],
       events: [],
       decrypted: "",
+    });
+    this.txform.current.setState({
+      txto: "",
+      txToMsg: "",
+      txToValid: null,
+      txvalue: 1,
+      txValueInput: "1",
+      txValueValid: null,
+      txValueMsg: "",
+      txValueDisplayWei: true,
+      txdata: "",
+      receiverIsContract: false,
     });
   }
 
