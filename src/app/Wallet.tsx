@@ -36,6 +36,7 @@ class Wallet extends Component {
       events: [],
       statusMessage: [],
       abi: mintable,
+      abiName: "Mintable ERC20",
       paused: false,
       l1Balance: 0,
       l2Balance: 0,
@@ -250,7 +251,7 @@ class Wallet extends Component {
       } else {
         abi = content;
       }
-      this.setState({ abi: abi });
+      this.setState({ abi: abi, abiName: file.name.split(".")[0] });
     };
   };
 
@@ -806,6 +807,7 @@ class Wallet extends Component {
           onChange={this.handleABIUpload}
           accept=".json"
         />
+        <h1 className="text-xl">{this.state.abiName}</h1>
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
