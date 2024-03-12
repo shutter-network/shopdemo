@@ -30,7 +30,6 @@ class Wallet extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      txform: createRef(),
       camera: createRef(),
       decryptionKey: "",
       inclusionWindow: 5,
@@ -43,6 +42,7 @@ class Wallet extends Component {
       l2Balance: 0,
       depositValue: 0,
     };
+    this.txform = createRef(),
     this.overlay = createRef(null);
     this.recharge = createRef(null);
   }
@@ -134,14 +134,16 @@ class Wallet extends Component {
       this.listener = websock;
       console.log("Using websocket listener for blocks");
     } catch (error) {
-      console.log("Using BrowserProvider listener for blocks");
+      console.log("Using BrowserProvider listener for blocks (slower)");
       this.listener = this.signer.provider;
     }
     this.listener.on("block", (block) => {
+      try {
       this.setState({ block: block });
       this.listener.getBalance(this.selectedAddress).then((newbalance) => {
         if (newbalance && newbalance != balance) {
-          this.state.txform.current.setState({ availableBalance: newbalance });
+          // tx form needs to be rendered for this to work:
+          this.txform.current.setState({ availableBalance: newbalance });
           balance = newbalance;
           // FIXME: state changes here are swallowed
           () => this.setState({ l2Balance: balance });
@@ -159,6 +161,11 @@ class Wallet extends Component {
           }
         }
       });
+    } catch (err) {
+        // try to refresh listener on weird exceptions (e.g. network changes)
+        console.log(err);
+        this.setupListener();
+    }
     });
   }
 
@@ -209,11 +216,11 @@ class Wallet extends Component {
       args = [...args, this.state.contractData[input.key]];
     }
     if (abifun.stateMutability != "payable") {
-      this.state.txform.current.setState({ txvalue: 0 });
+      this.txform.current.setState({ txvalue: 0 });
     }
     const funfrag = intf.getFunction(abifun.name.value);
     const calldata = intf.encodeFunctionData(funfrag, args);
-    this.state.txform.current.setState({ txdata: calldata });
+    this.txform.current.setState({ txdata: calldata });
   };
 
   handleABIUpload = async (event) => {
@@ -265,14 +272,19 @@ class Wallet extends Component {
       await this.checkBalances();
       return;
     }
-    const txstate = this.state.txform.current.state;
+    const txstate = this.txform.current.state;
     if (!this.signer) {
       return;
+    }
+    if (txstate.txvalue > Number.MAX_SAFE_INTEGER) {
+        this.addStatusMessage("'value' too big to handle, changing to maximum amount")
+        this.txform.current.setState({ txvalue: BigInt(Number.MAX_SAFE_INTEGER) })
+        txstate.txvalue = BigInt(Number.MAX_SAFE_INTEGER)
     }
     let txRequest = {
       from: this.state.selectedAddress,
       to: txstate.txto,
-      value: txstate.txvalue,
+      value: Number(txstate.txvalue),
       data: txstate.txdata,
     };
     await this.setState({ msgHex: JSON.stringify(txRequest) });
@@ -467,7 +479,7 @@ class Wallet extends Component {
               }
             />
             <Transaction
-              ref={this.state.txform}
+              ref={this.txform}
               checkReceiverIsContract={this.checkReceiverIsContract}
               availableBalance={this.state.l2Balance}
               checkBalances={this.checkBalances}
@@ -629,11 +641,10 @@ class Wallet extends Component {
           <div className="w-9/12">
             <a className="underline cursor-pointer" href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45" target="_blank" rel="noopener">Need more?</a>
           </div>
-          <label className="w-5/12" hmtlFor="amount-slider">Deposit Amount</label>
+          <label className="w-5/12">Deposit Amount</label>
           <div className="w-4/12">
             <input
               type="range"
-              id="amount-slider"
               step="1"
               onChange={(evt) =>
                 this.setState({
