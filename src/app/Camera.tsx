@@ -70,6 +70,14 @@ const Camera = forwardRef((props, ref) => {
     setDotkey(Math.random());
   };
 
+  const setBlank = () => {
+    setMotive({
+      ...motive,
+      filter: "blur(0) saturate(100%)",
+      background: "rgb(0, 0, 0)",
+    });
+  };
+
   const showMotive = (address: string) => {
     setMotive({
       ...motive,
@@ -117,6 +125,12 @@ const Camera = forwardRef((props, ref) => {
   useImperativeHandle(ref, (cmd) => ({
     control(cmd, arg?) {
       switch (cmd) {
+        case "setBlank":
+          setBlank();
+          break;
+        case "showMotive":
+          showMotive(arg.txto);
+          break;
         case "releaseShutter":
           toggle();
           trigger();

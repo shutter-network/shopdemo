@@ -30,7 +30,6 @@ class Wallet extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      camera: createRef(),
       decryptionKey: "",
       inclusionWindow: 5,
       executions: [],
@@ -42,6 +41,7 @@ class Wallet extends Component {
       l2Balance: 0,
       depositValue: 0,
     };
+    this.camera = createRef(null);
     this.txform = createRef(null);
     this.overlay = createRef(null);
     this.recharge = createRef(null);
@@ -301,7 +301,7 @@ class Wallet extends Component {
         this.state.inclusionWindow,
         this.listener,
       );
-    this.state.camera.current.control("setBlur");
+    this.camera.current.control("setBlur");
     await executionBlock;
 
     if (!executionBlock) {
@@ -319,11 +319,11 @@ class Wallet extends Component {
       .then((value) => {
         if (value.blockNumber < executionBlock && value.status == 1) {
           console.log(value.hash);
-          this.state.camera.current.control("setFocus");
+          this.camera.current.control("setFocus");
         } else {
           console.log("Inbox tx failed/too late!", value);
           this.addStatusMessage("Inbox tx failed/too late!");
-          this.state.camera.current.control("unsetMotive");
+          this.camera.current.control("unsetMotive");
         }
       })
       .catch((error) => {
@@ -374,7 +374,7 @@ class Wallet extends Component {
     const [to, data, value] = ethers.decodeRlp(
       "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
     );
-    this.state.camera.current.control("releaseShutter", { txto: to });
+    this.camera.current.control("releaseShutter", { txto: to });
     var decoded_value;
     if (value === "0x") {
       decoded_value = 0;
@@ -400,17 +400,25 @@ class Wallet extends Component {
   installBlockListener(number: number, provider: any) {
     return provider.once("block", async (blocknumber) => {
       if (blocknumber < number) {
-        this.state.camera.current.control("blink");
-        this.state.camera.current.control("setCountdown", {
+        this.camera.current.control("blink");
+        this.camera.current.control("setCountdown", {
           time: number - blocknumber,
           blockTime: BLOCKTIME,
         });
         this.installBlockListener(number, provider);
       } else {
-        this.state.camera.current.control("disarm");
+        this.camera.current.control("disarm");
         this.decodeShopReceipt(blocknumber);
       }
     });
+  }
+
+  setAddressValid = (address: string) => {
+    this.camera.current.control("showMotive", {txto: address});
+  }
+
+  setAddressBlank = () => {
+    this.camera.current.control("setBlank");
   }
 
   renderWallet() {
@@ -475,7 +483,7 @@ class Wallet extends Component {
     }
     return (
       <div className="mb-6">
-        <Camera ref={this.state.camera} url="camera-13695.mp3" />
+        <Camera ref={this.camera} url="camera-13695.mp3" />
         <div style={{ display: txFormDisplay }}>
           <form onSubmit={(event) => console.log(event)}>
             <label
@@ -502,6 +510,8 @@ class Wallet extends Component {
               checkBalances={this.checkBalances}
               overlay={this.overlay}
               recharge={this.recharge}
+              setAddressValid={this.setAddressValid}
+              setAddressBlank={this.setAddressBlank}
             />
             <button
               type="button"
