@@ -55,12 +55,11 @@ async function checkBalance(
   return balance;
 }
 
-export async function checkOnboarding(status: Function) {
+export async function checkOnboarding(status: Function): boolean {
   if (!window.ethereum) {
     status("No Wallet provider!");
     return false;
   }
-  return;
   try {
     const switched = await switchShopNetwork(status);
     console.log(switched);
@@ -77,9 +76,11 @@ export async function checkOnboarding(status: Function) {
       }
       await switchShopNetwork(status);
       status("You're now connected to SHOP network!");
+      return true;
     } else {
       status("switching to SHOP network failed:", JSON.stringify(error));
       console.error(error);
+      return false;
     }
   }
 }
