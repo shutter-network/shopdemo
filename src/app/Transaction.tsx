@@ -11,8 +11,8 @@ class Transaction extends Component {
     this.checkReceiverIsContract = props.checkReceiverIsContract;
     this.txto = createRef(null);
     this.txvalue = createRef(null);
-    this.setAddressValid = props.setAddressValid
-    this.setAddressBlank = props.setAddressBlank
+    this.setAddressValid = props.setAddressValid;
+    this.setAddressBlank = props.setAddressBlank;
     this.state = {
       availableBalance: props.availableBalance,
       txto: "",
@@ -48,7 +48,7 @@ class Transaction extends Component {
     }
 
     if (address.length === 0) {
-      this.setAddressBlank()
+      this.setAddressBlank();
       txToValid = null;
       validation = "";
     }

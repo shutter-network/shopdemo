@@ -198,4 +198,17 @@ p.ellipsis {
     z-index: 10;
     overflow-y: scroll;
   }
+
+  .popover {
+    cursor: "pointer";
+  }
+
+  .popover > .info {
+    display: "none";
+    background-color: "red";
+  }
+
+  .popover:hover > .info {
+    display: block;
+  }
 }

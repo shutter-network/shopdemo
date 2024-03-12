@@ -204,7 +204,7 @@ class Wallet extends Component {
       txdata: "",
       receiverIsContract: false,
     });
-  }
+  };
 
   async runDeposit() {
     await switchAndDeposit(this.state.depositValue, this.addStatusMessage);
@@ -426,12 +426,12 @@ class Wallet extends Component {
   }
 
   setAddressValid = (address: string) => {
-    this.camera.current.control("showMotive", {txto: address});
-  }
+    this.camera.current.control("showMotive", { txto: address });
+  };
 
   setAddressBlank = () => {
     this.camera.current.control("setBlank");
-  }
+  };
 
   renderWallet() {
     if (!this.state.block) {
@@ -470,7 +470,13 @@ class Wallet extends Component {
           />
           <p>Welcome {this.state.selectedAddress}</p>
           <p>
-            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)} <a className="underline cursor-pointer" onClick={() => this.recharge.current.style.display = "block"}>Add more.</a>
+            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)}{" "}
+            <a
+              className="underline cursor-pointer"
+              onClick={() => (this.recharge.current.style.display = "block")}
+            >
+              Add more.
+            </a>
           </p>
           <p>Current L2 Block is: {this.state.block} </p>
           <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
@@ -515,6 +521,9 @@ class Wallet extends Component {
                 this.setState({ inclusionWindow: parseInt(e.target.value) })
               }
             />
+            <label className="block info text-xs">
+              You need to sign the transaction before this timer runs out.
+            </label>
             <Transaction
               ref={this.txform}
               checkReceiverIsContract={this.checkReceiverIsContract}
