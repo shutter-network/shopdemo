@@ -457,7 +457,9 @@ class Wallet extends Component {
   }
 
   renderShutter() {
-    if (this.signer && !this.state.msgHex) {
+    const phase1 = (this.signer && !this.state.msgHex);
+    const phase2 = (this.signer && this.state.msgHex);
+    if (phase1) {
       return (
         <>
           <form onSubmit={(event) => console.log(event)}>
@@ -500,7 +502,7 @@ class Wallet extends Component {
         </>
       );
     }
-    if (this.state.msgHex) {
+    if (phase2) {
       return (
         <div className="mb-6">
           <Camera ref={this.state.camera} url="camera-13695.mp3" />
