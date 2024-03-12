@@ -79,7 +79,7 @@ p.ellipsis {
     z-index: 1;
   }
   .shutter {
-    z-index: 9;
+    z-index: 8;
     width: 200px;
     height: 200px;
     display: inline-block;

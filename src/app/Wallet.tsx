@@ -458,7 +458,7 @@ class Wallet extends Component {
           />
           <p>Welcome {this.state.selectedAddress}</p>
           <p>
-            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)}
+            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)} <a className="underline cursor-pointer" onClick={() => this.recharge.current.style.display = "block"}>Add more.</a>
           </p>
           <p>Current L2 Block is: {this.state.block} </p>
           <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
