@@ -26,7 +26,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const bigIntMax = (...args) => args.reduce((m, e) => (e > m ? e : m));
 
-class Metamask extends Component {
+class Wallet extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -47,7 +47,7 @@ class Metamask extends Component {
     this.recharge = createRef(null);
   }
 
-  async connectToMetamask() {
+  async connectToWallet() {
     if (window.ethereum) {
       console.log("Starting...");
 
@@ -106,7 +106,12 @@ class Metamask extends Component {
   }
 
   async setupShutterProvider() {
-    await switchShopNetwork(this.addStatusMessage);
+    const success = await checkOnboarding(this.addStatusMessage);
+    if (success === false) {
+      this.addStatusMessage(
+        "Wallet setup failed - please reload and try again!",
+      );
+    }
     const options = {
       wasmUrl: "/shutter-crypto.wasm",
       keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
@@ -392,7 +397,7 @@ class Metamask extends Component {
     });
   }
 
-  renderMetamask() {
+  renderWallet() {
     if (!this.state.block) {
       return (
         <div className="heading">
@@ -411,9 +416,9 @@ class Metamask extends Component {
           <button
             type="button"
             className="btn"
-            onClick={() => this.connectToMetamask()}
+            onClick={() => this.connectToWallet()}
           >
-            Connect to Metamask
+            Connect Wallet
           </button>
         </div>
       );
@@ -768,7 +773,7 @@ class Metamask extends Component {
         <div ref={this.overlay} id="overlay">
           {this.renderAbi(this.state.abi)}
         </div>
-        {this.renderMetamask()}
+        {this.renderWallet()}
         {this.state.statusMessage.map((entry) => {
           return (
             <span
@@ -783,4 +788,4 @@ class Metamask extends Component {
   }
 }
 
-export default Metamask;
+export default Wallet;
