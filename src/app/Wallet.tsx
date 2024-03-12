@@ -42,7 +42,7 @@ class Wallet extends Component {
       l2Balance: 0,
       depositValue: 0,
     };
-    this.txform = createRef(),
+    this.txform = createRef(null);
     this.overlay = createRef(null);
     this.recharge = createRef(null);
   }
@@ -139,33 +139,33 @@ class Wallet extends Component {
     }
     this.listener.on("block", (block) => {
       try {
-      this.setState({ block: block });
-      this.listener.getBalance(this.selectedAddress).then((newbalance) => {
-        if (newbalance && newbalance != balance) {
-          // tx form needs to be rendered for this to work:
-          this.txform.current.setState({ availableBalance: newbalance });
-          balance = newbalance;
-          // FIXME: state changes here are swallowed
-          () => this.setState({ l2Balance: balance });
-        }
-      });
-      this.signer.isShutterPaused().then((paused) => {
-        if (paused != this.state.paused) {
-          this.setState({ paused: paused });
-          if (paused) {
-            this.addStatusMessage(
-              '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>.',
-            );
-          } else {
-            this.addStatusMessage(".Shutter is operational again!");
+        this.setState({ block: block });
+        this.listener.getBalance(this.selectedAddress).then((newbalance) => {
+          if (newbalance && newbalance != balance) {
+            // tx form needs to be rendered for this to work:
+            this.txform.current.setState({ availableBalance: newbalance });
+            balance = newbalance;
+            // FIXME: state changes here are swallowed
+            () => this.setState({ l2Balance: balance });
           }
-        }
-      });
-    } catch (err) {
+        });
+        this.signer.isShutterPaused().then((paused) => {
+          if (paused != this.state.paused) {
+            this.setState({ paused: paused });
+            if (paused) {
+              this.addStatusMessage(
+                '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>.',
+              );
+            } else {
+              this.addStatusMessage(".Shutter is operational again!");
+            }
+          }
+        });
+      } catch (err) {
         // try to refresh listener on weird exceptions (e.g. network changes)
         console.log(err);
         this.setupListener();
-    }
+      }
     });
   }
 
@@ -277,9 +277,13 @@ class Wallet extends Component {
       return;
     }
     if (txstate.txvalue > Number.MAX_SAFE_INTEGER) {
-        this.addStatusMessage("'value' too big to handle, changing to maximum amount")
-        this.txform.current.setState({ txvalue: BigInt(Number.MAX_SAFE_INTEGER) })
-        txstate.txvalue = BigInt(Number.MAX_SAFE_INTEGER)
+      this.addStatusMessage(
+        "'value' too big to handle, changing to maximum amount",
+      );
+      this.txform.current.setState({
+        txvalue: BigInt(Number.MAX_SAFE_INTEGER),
+      });
+      txstate.txvalue = BigInt(Number.MAX_SAFE_INTEGER);
     }
     let txRequest = {
       from: this.state.selectedAddress,
@@ -457,11 +461,22 @@ class Wallet extends Component {
   }
 
   renderShutter() {
-    const phase1 = (this.signer && !this.state.msgHex);
-    const phase2 = (this.signer && this.state.msgHex);
+    const phase1 = this.signer && !this.state.msgHex;
+    const phase2 = this.signer && this.state.msgHex;
+    let txFormDisplay = "none";
+    let shutterInternalDisplay = "none";
     if (phase1) {
-      return (
-        <>
+      txFormDisplay = "block";
+      shutterInternalDisplay = "none";
+    }
+    if (phase2) {
+      txFormDisplay = "none";
+      shutterInternalDisplay = "block";
+    }
+    return (
+      <div className="mb-6">
+        <Camera ref={this.state.camera} url="camera-13695.mp3" />
+        <div style={{ display: txFormDisplay }}>
           <form onSubmit={(event) => console.log(event)}>
             <label
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -492,20 +507,17 @@ class Wallet extends Component {
               type="button"
               disabled={this.state.paused}
               className={
-                this.state.paused ? "btn btn-disabled disabled" : "btn btn-red cursor-pointer"
+                this.state.paused
+                  ? "btn btn-disabled disabled"
+                  : "btn btn-red cursor-pointer"
               }
               onClick={() => this.encryptMessage()}
             >
               Send Shutterized Transaction
             </button>
           </form>
-        </>
-      );
-    }
-    if (phase2) {
-      return (
-        <div className="mb-6">
-          <Camera ref={this.state.camera} url="camera-13695.mp3" />
+        </div>
+        <div style={{ display: shutterInternalDisplay }}>
           <label
             htmlFor="encryptedTx"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -585,8 +597,8 @@ class Wallet extends Component {
             New Transaction
           </button>
         </div>
-      );
-    }
+      </div>
+    );
   }
 
   checkBalances = async () => {
@@ -641,7 +653,14 @@ class Wallet extends Component {
             Available Sepolia ETH: {ethers.formatEther(this.state.l1Balance)}
           </div>
           <div className="w-9/12">
-            <a className="underline cursor-pointer" href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45" target="_blank" rel="noopener">Need more?</a>
+            <a
+              className="underline cursor-pointer"
+              href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45"
+              target="_blank"
+              rel="noopener"
+            >
+              Need more?
+            </a>
           </div>
           <label className="w-5/12">Deposit Amount</label>
           <div className="w-4/12">
@@ -661,7 +680,10 @@ class Wallet extends Component {
             Clicking <pre className="inline-block bg-gray-200">Deposit</pre>{" "}
             will switch to Sepolia Network and ask for a signature.
           </div>
-          <div className="w-9/12 btn cursor-pointer" onClick={() => this.runDeposit()}>
+          <div
+            className="w-9/12 btn cursor-pointer"
+            onClick={() => this.runDeposit()}
+          >
             Deposit {ethers.formatEther(this.state.depositValue)} Sepolia ETH.
           </div>
         </div>
@@ -794,15 +816,15 @@ class Wallet extends Component {
         </div>
         {this.renderWallet()}
         <div className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4">
-        {this.state.statusMessage.map((entry) => {
-          return (
-            <span
-              className={"block " + entry.color}
-              key={entry.key}
-              dangerouslySetInnerHTML={{ __html: entry.msg }}
-            ></span>
-          );
-        })}
+          {this.state.statusMessage.map((entry) => {
+            return (
+              <span
+                className={"block " + entry.color}
+                key={entry.key}
+                dangerouslySetInnerHTML={{ __html: entry.msg }}
+              ></span>
+            );
+          })}
         </div>
       </div>
     );

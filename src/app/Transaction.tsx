@@ -170,10 +170,15 @@ class Transaction extends Component {
           >
             Use ABI
           </button>
-          <span className="h-6 col-span-8 text-red-400">{this.state.txToMsg}</span>
+          <span className="h-6 col-span-8 text-red-400">
+            {this.state.txToMsg}
+          </span>
           <label htmlFor="txvalue" className="col-span-8">
             Value (
-            <a className="underline cursor-pointer" onClick={this.toggleValueInputFormat}>
+            <a
+              className="underline cursor-pointer"
+              onClick={this.toggleValueInputFormat}
+            >
               {this.state.txValueDisplayWei ? "in wei" : "in ETH"}
             </a>
             ):
@@ -190,7 +195,10 @@ class Transaction extends Component {
             {this.state.txValueMsg}
           </span>
           <span className={this.state.moreFunds ? "col-span-4" : "hidden"}>
-            <a className="underline cursor-pointer" onClick={this.toggleRecharge}>
+            <a
+              className="underline cursor-pointer"
+              onClick={this.toggleRecharge}
+            >
               Click here to add more funds.
             </a>
           </span>
