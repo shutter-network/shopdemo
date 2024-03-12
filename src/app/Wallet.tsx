@@ -470,6 +470,7 @@ class Wallet extends Component {
               ref={this.state.txform}
               checkReceiverIsContract={this.checkReceiverIsContract}
               availableBalance={this.state.l2Balance}
+              checkBalances={this.checkBalances}
               overlay={this.overlay}
               recharge={this.recharge}
             />
@@ -574,7 +575,7 @@ class Wallet extends Component {
     }
   }
 
-  async checkBalances() {
+  checkBalances = async () => {
     const l1Balance = await checkL1Balance(
       this.addStatusMessage,
       this.selectedAddress,
@@ -591,7 +592,7 @@ class Wallet extends Component {
         ethers.parseEther("0.01") - l2Balance,
       ),
     });
-  }
+  };
 
   renderRecharge() {
     return (

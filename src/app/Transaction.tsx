@@ -7,6 +7,7 @@ class Transaction extends Component {
     super(props);
     this.overlay = props.overlay;
     this.recharge = props.recharge;
+    this.checkBalances = props.checkBalances;
     this.checkReceiverIsContract = props.checkReceiverIsContract;
     this.txto = createRef(null);
     this.txvalue = createRef(null);
@@ -63,8 +64,13 @@ class Transaction extends Component {
     });
   };
 
-  toggleRecharge = () => {
+  toggleRecharge = async () => {
     this.recharge.current.style.display = "block";
+    try {
+      await this.checkBalances();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   txValueChanged = (event) => {
