@@ -490,11 +490,11 @@ class Wallet extends Component {
               type="button"
               disabled={this.state.paused}
               className={
-                this.state.paused ? "btn btn-disabled disabled" : "btn btn-red"
+                this.state.paused ? "btn btn-disabled disabled" : "btn btn-red cursor-pointer"
               }
               onClick={() => this.encryptMessage()}
             >
-              Encrypt Transaction
+              Send Shutterized Transaction
             </button>
           </form>
         </>
@@ -659,7 +659,7 @@ class Wallet extends Component {
             Clicking <pre className="inline-block bg-gray-200">Deposit</pre>{" "}
             will switch to Sepolia Network and ask for a signature.
           </div>
-          <div className="w-9/12 btn" onClick={() => this.runDeposit()}>
+          <div className="w-9/12 btn cursor-pointer" onClick={() => this.runDeposit()}>
             Deposit {ethers.formatEther(this.state.depositValue)} Sepolia ETH.
           </div>
         </div>
