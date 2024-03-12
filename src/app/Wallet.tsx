@@ -216,7 +216,7 @@ class Wallet extends Component {
       args = [...args, this.state.contractData[input.key]];
     }
     if (abifun.stateMutability != "payable") {
-      this.txform.current.setState({ txvalue: 0 });
+      this.txform.current.setState({ txvalue: 0, txValueInput: 0 });
     }
     const funfrag = intf.getFunction(abifun.name.value);
     const calldata = intf.encodeFunctionData(funfrag, args);
