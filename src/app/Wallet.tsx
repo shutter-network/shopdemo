@@ -627,8 +627,13 @@ class Wallet extends Component {
             Available Sepolia ETH: {ethers.formatEther(this.state.l1Balance)}
           </div>
           <div className="w-9/12">
+            <a className="underline cursor-pointer" href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45" target="_blank" rel="noopener">Need more?</a>
+          </div>
+          <label className="w-5/12" hmtlFor="amount-slider">Deposit Amount</label>
+          <div className="w-4/12">
             <input
               type="range"
+              id="amount-slider"
               step="1"
               onChange={(evt) =>
                 this.setState({
