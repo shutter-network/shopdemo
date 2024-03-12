@@ -170,7 +170,7 @@ class Transaction extends Component {
           >
             Use ABI
           </button>
-          <span className="col-span-8 text-red-400">{this.state.txToMsg}</span>
+          <span className="h-6 col-span-8 text-red-400">{this.state.txToMsg}</span>
           <label htmlFor="txvalue" className="col-span-8">
             Value (
             <a className="underline cursor-pointer" onClick={this.toggleValueInputFormat}>
@@ -186,7 +186,7 @@ class Transaction extends Component {
             onChange={this.txValueChanged}
             className="col-span-8 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
           />
-          <span className="col-span-4 text-red-400">
+          <span className="h-6 col-span-4 text-red-400">
             {this.state.txValueMsg}
           </span>
           <span className={this.state.moreFunds ? "col-span-4" : "hidden"}>
