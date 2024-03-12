@@ -66,7 +66,7 @@ class Wallet extends Component {
       console.log(msg.slice(0, 1));
       var color = "text-black";
       if (msg.slice(0, 1) === "!") {
-        color = "text-red-400";
+        color = "text-red-600";
         msg = msg.slice(1);
       }
       if (msg.slice(0, 1) === ".") {
@@ -74,7 +74,6 @@ class Wallet extends Component {
         msg = msg.slice(1);
       }
       statusMessages = [
-        ...statusMessages,
         {
           msg: msg,
           color: color,
@@ -83,6 +82,7 @@ class Wallet extends Component {
             "-" +
             [...msg].reduce((s, c) => s + c.charCodeAt(), 0),
         },
+        ...statusMessages,
       ];
       console.log("MSG", msg);
     });
@@ -152,10 +152,10 @@ class Wallet extends Component {
           this.setState({ paused: paused });
           if (paused) {
             this.addStatusMessage(
-              '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>',
+              '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>.',
             );
           } else {
-            this.addStatusMessage(".Shutter is operational");
+            this.addStatusMessage(".Shutter is operational again!");
           }
         }
       });
@@ -780,6 +780,7 @@ class Wallet extends Component {
           {this.renderAbi(this.state.abi)}
         </div>
         {this.renderWallet()}
+        <div className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4">
         {this.state.statusMessage.map((entry) => {
           return (
             <span
@@ -789,6 +790,7 @@ class Wallet extends Component {
             ></span>
           );
         })}
+        </div>
       </div>
     );
   }
