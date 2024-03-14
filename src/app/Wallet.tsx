@@ -65,7 +65,7 @@ class Wallet extends Component {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
       console.log(msg.slice(0, 1));
-      var color = "text-black";
+      var color = "text-black dark:text-white";
       if (msg.slice(0, 1) === "!") {
         color = "text-red-600";
         msg = msg.slice(1);
@@ -78,6 +78,14 @@ class Wallet extends Component {
         {
           msg: msg,
           color: color,
+          timestamp: (new Date()).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          }),
           key:
             Date.parse(new Date()).toString() +
             "-" +
@@ -860,11 +868,14 @@ class Wallet extends Component {
         <div className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4">
           {this.state.statusMessage.map((entry) => {
             return (
-              <span
-                className={"block " + entry.color}
-                key={entry.key}
-                dangerouslySetInnerHTML={{ __html: entry.msg }}
-              ></span>
+              <div key={entry.key}>
+                <span>{(entry.timestamp)}</span>
+                <span
+                  className={"block " + entry.color}
+
+                  dangerouslySetInnerHTML={{ __html: entry.msg }}
+                ></span>
+              </div>
             );
           })}
         </div>
