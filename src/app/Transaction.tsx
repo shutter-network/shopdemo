@@ -83,6 +83,19 @@ class Transaction extends Component {
 
   txValueChanged = (event) => {
     const valueInput = event.target.value;
+    if (valueInput === "") {
+      this.txvalue.current.style.borderColor = "black";
+      this.txvalue.current.style.backgroundColor = "rgba(255, 255, 255, 0.25)";
+      this.setState({
+        txValueValid: true,
+        txValueMsg: null,
+        txValueInput: "",
+        txvalue: "",
+        moreFunds: false,
+      });
+      return;
+    }
+
     let value;
     let moreFunds = false;
     let validation = "";

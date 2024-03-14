@@ -373,6 +373,7 @@ class Wallet extends Component {
 
     let [decryptionKey, executions] = ethers.decodeRlp(executionlog);
 
+    // add keys for react/frontend
     executions = executions.map((x, xidx) =>
       x.map((inner, iidx) => [xidx.toString() + "_" + iidx.toString(), inner]),
     );
