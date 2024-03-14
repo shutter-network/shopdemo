@@ -65,10 +65,10 @@ p.ellipsis {
   }
   .camerabody {
     position: relative;
-    top: 20px;
     display: block;
     margin-bottom: 20px;
     height: 230px;
+    width: 200px;
   }
   .motive {
     transition: 1s all linear;
@@ -138,7 +138,7 @@ p.ellipsis {
 
   .camera-control {
     position: relative;
-    left: 200px;
+    left: 150px;
     display: inline-block;
     margin-right: 5px;
     vertical-align: top;
@@ -175,15 +175,13 @@ p.ellipsis {
   #recharge {
     position: fixed;
     display: none;
-    width: 80%;
-    height: 80%;
-    top: 10%;
-    left: 10%;
-    right: 10%;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.9);
     bottom: 10%;
-    background-color: rgba(255, 255, 255, 0.9);
     z-index: 9;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
   #overlay {
     position: fixed;

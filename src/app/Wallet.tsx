@@ -1,4 +1,4 @@
-import React, { Component, createRef } from "react";
+import React, { Component, createRef, useEffect, useState } from "react";
 import Image from "next/image";
 import {
   ShutterProvider,
@@ -19,12 +19,98 @@ import Camera from "./Camera";
 import uuidv3 from "uuid/v3";
 import L1Bridge from "./L1StandardBridge";
 import mintable from "./mintableERC20";
+import { formatEther } from "ethers";
 
 const BLOCKTIME = 5;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const bigIntMax = (...args) => args.reduce((m, e) => (e > m ? e : m));
+
+const Recharge = ({ l1Balance, l2Balance, onClick }) => {
+  const [depositValue, setDepositValue] = useState(0);
+
+  useEffect(() => {
+    setDepositValue((BigInt(1) * BigInt(l1Balance)) / BigInt(100));
+  }, [l1Balance]);
+
+  return (
+    <div className="p-6 rounded-lg text-center">
+      <button
+        className="absolute top-0 right-0 m-4 bg-red-500 text-white rounded-full p-2"
+        onClick={() => (document.getElementById("recharge").style.display = "none")}
+      >
+        X
+      </button>
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <Image
+          src="/Battery_empty.svg"
+          width="200"
+          height="200"
+          alt="not enough funds"
+        />
+        <p className="text-lg text-gray-700 dark:text-gray-200">
+          {formatEther(l2Balance)} SHOP ETH is not enough to continue.
+        </p>
+        <p className="text-lg text-gray-700 dark:text-gray-200">
+          You can deposit ETH on the Sepolia Bridge to get SHOP ETH.
+        </p>
+        <p className="text-lg text-gray-700 dark:text-gray-200">
+          Available Sepolia ETH: {formatEther(l1Balance)}
+        </p>
+        <a
+          className="underline text-blue-500 hover:text-blue-700"
+          href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Need more?
+        </a>
+        <label className="text-lg text-gray-700 dark:text-gray-200">Deposit Amount</label>
+        <input
+          type="range"
+          step="1"
+          className="w-full"
+          onChange={(evt) =>
+            setDepositValue((BigInt(evt.target.value) * l1Balance) / BigInt(100))
+          }
+        />
+        <p className="text-lg text-gray-700 dark:text-gray-200">
+          Clicking 'Deposit' will switch to Sepolia Network and ask for a signature.
+        </p>
+        <button
+          className="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          onClick={() => onClick(depositValue)}
+        >
+          Deposit {formatEther(depositValue)} Sepolia ETH.
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const StatusMessages = ({ statusMessages }) => {
+  return (
+    <div
+      className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4 mt-4 fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-black transition-colors duration-500">
+
+      <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">Terminal Output</h2>
+
+      {statusMessages.map((entry) => {
+        return (
+          <div key={entry.key}>
+            <span className="text-gray-600 dark:text-gray-400">{entry.timestamp}</span>
+            <span
+              className={"block " + entry.color + " text-gray-800 dark:text-gray-200"}
+              dangerouslySetInnerHTML={{ __html: entry.msg }}
+            ></span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 
 class Wallet extends Component {
   constructor(props) {
@@ -46,6 +132,12 @@ class Wallet extends Component {
     this.txform = createRef(null);
     this.overlay = createRef(null);
     this.recharge = createRef(null);
+
+    this.runDeposit = this.runDeposit.bind(this);
+  }
+
+  componentDidMount() {
+    this.connectToWallet();
   }
 
   async connectToWallet() {
@@ -61,7 +153,7 @@ class Wallet extends Component {
     }
   }
 
-  addStatusMessage = async (...msgs: string) => {
+  addStatusMessage = async (...msgs: string[]) => {
     let statusMessages = [...this.state.statusMessage];
     msgs.forEach((msg, i) => {
       console.log(msg.slice(0, 1));
@@ -215,8 +307,8 @@ class Wallet extends Component {
     });
   };
 
-  async runDeposit() {
-    await switchAndDeposit(this.state.depositValue, this.addStatusMessage);
+  async runDeposit(depositValue) {
+    await switchAndDeposit(depositValue, this.addStatusMessage);
     this.recharge.current.style.display = "none";
   }
 
@@ -445,17 +537,20 @@ class Wallet extends Component {
   renderWallet() {
     if (!this.state.block) {
       return (
-        <div className="heading">
-          <Image
-            src="/SH_OP.svg"
-            width="100"
-            height="100"
-            alt="shutterized OPTIMISM demo"
-            priority={true}
-            className="mr-4"
-          />
-          <div>
-            Welcome to shutterized optimism on Sepolia. Send shutter encrypted
+        <div className="heading text-center">
+          <div className="flex justify-center">
+            <Image
+              src="/SH_OP.svg"
+              width="100"
+              height="100"
+              alt="shutterized OPTIMISM demo"
+              priority={true}
+              className=""
+            />
+          </div>
+
+          <div className={"m-4"}>
+            Welcome to shutterized optimism demo on Sepolia. Send shutter encrypted
             transactions with this dApp.
           </div>
           <button
@@ -469,27 +564,41 @@ class Wallet extends Component {
       );
     } else {
       return (
-        <div>
-          <Image
-            src="/SH_OP.svg"
-            width="100"
-            height="100"
-            alt="shutterized OPTIMISM demo"
-            className="logo float-left mr-4"
-          />
-          <p>Welcome {this.state.selectedAddress}</p>
-          <p>
-            Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)}{" "}
-            <a
-              className="underline cursor-pointer"
-              onClick={() => (this.toggleRecharge())}
-            >
-              Add more.
-            </a>
-          </p>
-          <p>Current L2 Block is: {this.state.block} </p>
-          <p className="ellipsis">Current EonKey is: {this.state.eonkey}</p>
-          {this.renderShutter()}
+        <div className={"p-5 "}>
+          <div className={"flex"}>
+            <div className="mr-4 ml-8 mt-2">
+              <Image
+                src="/SH_OP.svg"
+                width="100"
+                height="100"
+                alt="shutterized OPTIMISM demo"
+                className="logo float-left mr-4"
+              />
+            </div>
+            <div className={"flex-1 text-right"}>
+              <p className="text-lg font-bold">Welcome {this.state.selectedAddress}</p>
+              <p className="text-base">
+                Your L2 ETH Balance is: <span
+                className="text-blue-600 dark:text-yellow-300">{ethers.formatEther(this.state.l2Balance)}</span>{" "}
+                <a
+                  className="underline text-blue-700 cursor-pointer "
+                  onClick={() => (this.toggleRecharge())}
+                >
+                  Add more.
+                </a>
+              </p>
+              <p className="text-sm">Current L2 Block is: <span
+                className="text-blue-600 dark:text-yellow-300">{this.state.block}</span>
+              </p>
+              <p className="text-sm">Current EonKey is: <span
+                className="text-blue-600 dark:text-yellow-300" title={this.state.eonkey}>{this.state.eonkey.slice(0, 64)}...</span></p>
+            </div>
+          </div>
+
+
+          <div className={"mt-5"}>
+            {this.renderShutter()}
+          </div>
         </div>
       );
     }
@@ -509,30 +618,36 @@ class Wallet extends Component {
       shutterInternalDisplay = "block";
     }
     return (
-      <div className="mb-6">
-        <Camera ref={this.camera} url="camera-13695.mp3" />
-        <div style={{ display: txFormDisplay }}>
-          <form onSubmit={(event) => console.log(event)}>
-            <label
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              htmlFor="inclusionWindow"
-            >
-              Execute in {this.state.inclusionWindow} blocks/
-              {this.state.inclusionWindow * BLOCKTIME}s
-            </label>
-            <input
-              value={this.state.inclusionWindow}
-              id="inclusionWindow"
-              type="range"
-              min="2"
-              max="20"
-              onChange={(e) =>
-                this.setState({ inclusionWindow: parseInt(e.target.value) })
-              }
-            />
-            <label className="block info text-xs">
-              You need to sign the transaction before this timer runs out.
-            </label>
+      <div className="mb-6 flex">
+        <div className="w-96 flex items-center justify-center mr-12">
+          <Camera ref={this.camera} url="camera-13695.mp3" />
+        </div>
+        <div style={{ display: txFormDisplay }} className="flex-1">
+          <form onSubmit={(event) => console.log(event)}
+                className="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2"
+                htmlFor="inclusionWindow"
+              >
+                Execute in {this.state.inclusionWindow} blocks/
+                {this.state.inclusionWindow * BLOCKTIME}s
+              </label>
+              <input
+                value={this.state.inclusionWindow}
+                id="inclusionWindow"
+                type="range"
+                min="2"
+                max="20"
+                onChange={(e) =>
+                  this.setState({ inclusionWindow: parseInt(e.target.value) })
+                }
+                className="border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <p className="text-gray-600 dark:text-gray-400 text-xs italic">
+                You need to sign the transaction before this timer runs out.
+              </p>
+            </div>
             <Transaction
               ref={this.txform}
               checkReceiverIsContract={this.checkReceiverIsContract}
@@ -543,18 +658,20 @@ class Wallet extends Component {
               setAddressValid={this.setAddressValid}
               setAddressBlank={this.setAddressBlank}
             />
-            <button
-              type="button"
-              disabled={this.state.paused}
-              className={
-                this.state.paused
-                  ? "btn btn-disabled disabled"
-                  : "btn btn-red cursor-pointer"
-              }
-              onClick={() => this.encryptMessage()}
-            >
-              Send Shutterized Transaction
-            </button>
+            <div className="flex items-center justify-between mt-4">
+              <button
+                type="button"
+                disabled={this.state.paused}
+                className={
+                  this.state.paused
+                    ? "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline opacity-50 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-blue-700 dark:hover:bg-blue-600"
+                }
+                onClick={() => this.encryptMessage()}
+              >
+                Send Shutterized Transaction
+              </button>
+            </div>
           </form>
         </div>
         <div style={{ display: shutterInternalDisplay }}>
@@ -671,72 +788,7 @@ class Wallet extends Component {
 
   renderRecharge() {
     return (
-      <>
-        <button
-          className="block btn btn-red m-1 object-right-top"
-          type="btn"
-          onClick={() => (this.recharge.current.style.display = "none")}
-        >
-          X
-        </button>
-        <div className="flex flex-row flex-wrap justify-center items-center">
-          <div className="w-9/12">
-            <Image
-              src="/Battery_empty.svg"
-              style={{ width: "200px", height: "auto" }}
-              width="0"
-              height="0"
-              alt="not enough funds"
-              priority={true}
-            />
-          </div>
-          <div className="w-9/12">
-            {ethers.formatEther(this.state.l2Balance)} SHOP ETH is not enough to
-            continue.
-          </div>
-          <div className="w-9/12">
-            You can <pre className="inline-block bg-gray-200">depositETH</pre>{" "}
-            on the Sepolia Bridge to get SHOP ETH.
-          </div>
-          <div className="w-9/12">
-            Available Sepolia ETH: {ethers.formatEther(this.state.l1Balance)}
-          </div>
-          <div className="w-9/12">
-            <a
-              className="underline cursor-pointer"
-              href="https://github.com/eth-clients/sepolia/blob/main/README.md?plain=1#L38-L45"
-              target="_blank"
-              rel="noopener"
-            >
-              Need more?
-            </a>
-          </div>
-          <label className="w-5/12">Deposit Amount</label>
-          <div className="w-4/12">
-            <input
-              type="range"
-              step="1"
-              onChange={(evt) =>
-                this.setState({
-                  depositValue:
-                    (BigInt(evt.target.value) * this.state.l1Balance) /
-                    BigInt(100)
-                })
-              }
-            />
-          </div>
-          <div className="w-9/12">
-            Clicking <pre className="inline-block bg-gray-200">Deposit</pre>{" "}
-            will switch to Sepolia Network and ask for a signature.
-          </div>
-          <div
-            className="w-9/12 btn cursor-pointer"
-            onClick={() => this.runDeposit()}
-          >
-            Deposit {ethers.formatEther(this.state.depositValue)} Sepolia ETH.
-          </div>
-        </div>
-      </>
+      <Recharge l1Balance={this.state.l1Balance} l2Balance={this.state.l2Balance} onClick={this.runDeposit} />
     );
   }
 
@@ -859,26 +911,19 @@ class Wallet extends Component {
     return (
       <div>
         <div ref={this.recharge} id="recharge">
-          {this.renderRecharge()}
+          <div
+            className={"dark:bg-gray-800 bg-gray-100 p-6 rounded-lg shadow-lg w-full md:w-1/2 mx-auto text-center mt-20 mb-20"}>
+
+            {this.renderRecharge()}
+          </div>
+
         </div>
         <div ref={this.overlay} id="overlay">
           {this.renderAbi(this.state.abi)}
         </div>
         {this.renderWallet()}
-        <div className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4">
-          {this.state.statusMessage.map((entry) => {
-            return (
-              <div key={entry.key}>
-                <span>{(entry.timestamp)}</span>
-                <span
-                  className={"block " + entry.color}
 
-                  dangerouslySetInnerHTML={{ __html: entry.msg }}
-                ></span>
-              </div>
-            );
-          })}
-        </div>
+        <StatusMessages statusMessages={this.state.statusMessage} />
       </div>
     );
   }

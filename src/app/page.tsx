@@ -6,7 +6,7 @@ import Wallet from "./Wallet";
 export default function Home() {
   return (
     <StrictMode>
-      <main className="items-center justify-between p-24">
+      <main className="items-center justify-between p-12">
         <Wallet></Wallet>
       </main>
     </StrictMode>
