@@ -35,14 +35,14 @@ export async function checkL1Balance(
   status: Function,
   account: address,
 ): number {
-  return checkBalance(sepoliaChain.rpcUrls[0], status, account);
+  return await checkBalance(sepoliaChain.rpcUrls[0], status, account);
 }
 
 export async function checkL2Balance(
   status: Function,
   account: address,
 ): number {
-  return checkBalance(shopChain.rpcUrls[0], status, account);
+  return await checkBalance(shopChain.rpcUrls[0], status, account);
 }
 
 async function checkBalance(

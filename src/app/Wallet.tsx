@@ -281,8 +281,7 @@ class Wallet extends Component {
   async encryptMessage() {
     console.log(this.state.l2Balance);
     if (this.state.l2Balance < ethers.parseEther("0.01")) {
-      this.recharge.current.style.display = "block";
-      await this.checkBalances();
+      this.toggleRecharge();
       return;
     }
     const txstate = this.txform.current.state;
@@ -475,7 +474,7 @@ class Wallet extends Component {
             Your L2 ETH Balance is: {ethers.formatEther(this.state.l2Balance)}{" "}
             <a
               className="underline cursor-pointer"
-              onClick={() => (this.recharge.current.style.display = "block")}
+              onClick={() => (this.toggleRecharge())}
             >
               Add more.
             </a>
@@ -651,6 +650,15 @@ class Wallet extends Component {
         ethers.parseEther("0.01") - l2Balance,
       ),
     });
+  };
+
+  toggleRecharge = async () => {
+    this.recharge.current.style.display = "block";
+    try {
+      await this.checkBalances();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   renderRecharge() {
