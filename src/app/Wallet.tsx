@@ -4,14 +4,14 @@ import {
   ShutterProvider,
   ethers,
   init,
-  decrypt,
+  decrypt
 } from "@shutter-network/shop-sdk";
 import {
   checkL1Balance,
   checkL2Balance,
   switchShopNetwork,
   checkOnboarding,
-  queryL1,
+  queryL1
 } from "./Onboarding";
 import { switchAndDeposit } from "./Deposit";
 import Transaction from "./Transaction";
@@ -40,7 +40,7 @@ class Wallet extends Component {
       paused: false,
       l1Balance: 0,
       l2Balance: 0,
-      depositValue: 0,
+      depositValue: 0
     };
     this.camera = createRef(null);
     this.txform = createRef(null);
@@ -78,20 +78,20 @@ class Wallet extends Component {
         {
           msg: msg,
           color: color,
-          timestamp: (new Date()).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
+          timestamp: (new Date()).toLocaleString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
           }),
           key:
             Date.parse(new Date()).toString() +
             "-" +
-            [...msg].reduce((s, c) => s + c.charCodeAt(), 0),
+            [...msg].reduce((s, c) => s + c.charCodeAt(), 0)
         },
-        ...statusMessages,
+        ...statusMessages
       ];
       console.log("MSG", msg);
     });
@@ -118,14 +118,14 @@ class Wallet extends Component {
     const success = await checkOnboarding(this.addStatusMessage);
     if (success === false) {
       this.addStatusMessage(
-        "Wallet setup failed - please reload and try again!",
+        "Wallet setup failed - please reload and try again!"
       );
     }
     const options = {
       wasmUrl: "/shutter-crypto.wasm",
       keyperSetManagerAddress: "0x4200000000000000000000000000000000000067",
       inboxAddress: "0x4200000000000000000000000000000000000066",
-      keyBroadcastAddress: "0x4200000000000000000000000000000000000068",
+      keyBroadcastAddress: "0x4200000000000000000000000000000000000068"
     };
     await init(options.wasmUrl);
     const provider = new ShutterProvider(options, window.ethereum);
@@ -138,7 +138,7 @@ class Wallet extends Component {
   async setupListener(balance: number) {
     try {
       const websock = await new ethers.WebSocketProvider(
-        "wss://socket.sepolia.staging.shutter.network",
+        "wss://socket.sepolia.staging.shutter.network"
       );
       this.listener = websock;
       console.log("Using websocket listener for blocks");
@@ -163,7 +163,7 @@ class Wallet extends Component {
             this.setState({ paused: paused });
             if (paused) {
               this.addStatusMessage(
-                '!Shutter is paused! Contact <a href="https://t.me/shutter_network/1" class="underline">Shutter on TG</a>.',
+                "!Shutter is paused! Contact <a href=\"https://t.me/shutter_network/1\" class=\"underline\">Shutter on TG</a>."
               );
             } else {
               this.addStatusMessage(".Shutter is operational again!");
@@ -189,7 +189,7 @@ class Wallet extends Component {
       selectedAddress: this.selectedAddress,
       l2Balance: balance,
       block: block,
-      eonkey: eonkey,
+      eonkey: eonkey
     });
   }
 
@@ -199,7 +199,7 @@ class Wallet extends Component {
       decryptionKey: "",
       executions: [],
       events: [],
-      decrypted: "",
+      decrypted: ""
     });
     this.txform.current.setState({
       txto: "",
@@ -211,7 +211,7 @@ class Wallet extends Component {
       txValueMsg: "",
       txValueDisplayWei: true,
       txdata: "",
-      receiverIsContract: false,
+      receiverIsContract: false
     });
   };
 
@@ -280,7 +280,7 @@ class Wallet extends Component {
         let chars = this.state.msgHex.split("");
         chars[i] = "*";
         this.setState({
-          msgHex: chars.join(""),
+          msgHex: chars.join("")
         });
       }
     }
@@ -298,10 +298,10 @@ class Wallet extends Component {
     }
     if (txstate.txvalue > Number.MAX_SAFE_INTEGER) {
       this.addStatusMessage(
-        "'value' too big to handle, changing to maximum amount",
+        "'value' too big to handle, changing to maximum amount"
       );
       this.txform.current.setState({
-        txvalue: BigInt(Number.MAX_SAFE_INTEGER),
+        txvalue: BigInt(Number.MAX_SAFE_INTEGER)
       });
       txstate.txvalue = BigInt(Number.MAX_SAFE_INTEGER);
     }
@@ -309,7 +309,7 @@ class Wallet extends Component {
       from: this.state.selectedAddress,
       to: txstate.txto,
       value: Number(txstate.txvalue),
-      data: txstate.txdata,
+      data: txstate.txdata
     };
     await this.setState({ msgHex: JSON.stringify(txRequest) });
 
@@ -319,7 +319,7 @@ class Wallet extends Component {
       await this.signer._sendTransactionTrace(
         txRequest,
         this.state.inclusionWindow,
-        this.listener,
+        this.listener
       );
     this.camera.current.control("setBlur");
     await executionBlock;
@@ -330,7 +330,7 @@ class Wallet extends Component {
     }
     const exeListener = this.installBlockListener(
       executionBlock,
-      this.listener,
+      this.listener
     );
 
     let tx = await txResponse;
@@ -382,18 +382,18 @@ class Wallet extends Component {
 
     // add keys for react/frontend
     executions = executions.map((x, xidx) =>
-      x.map((inner, iidx) => [xidx.toString() + "_" + iidx.toString(), inner]),
+      x.map((inner, iidx) => [xidx.toString() + "_" + iidx.toString(), inner])
     );
     console.log("executions", executions);
 
     let decrypted = await this.decryptMessage(
       this.state.msgHex,
-      decryptionKey.slice(2),
+      decryptionKey.slice(2)
     );
     console.log("decrypted", decrypted);
 
     const [to, data, value] = ethers.decodeRlp(
-      "0x" + Buffer.from(decrypted.slice(1)).toString("hex"),
+      "0x" + Buffer.from(decrypted.slice(1)).toString("hex")
     );
     this.camera.current.control("releaseShutter", { txto: to });
     var decoded_value;
@@ -410,11 +410,11 @@ class Wallet extends Component {
       decrypted: JSON.stringify(
         [
           { version: decrypted[0] },
-          { to: to, data: data, value: decoded_value },
+          { to: to, data: data, value: decoded_value }
         ],
         null,
-        2,
-      ),
+        2
+      )
     });
   }
 
@@ -424,7 +424,7 @@ class Wallet extends Component {
         this.camera.current.control("blink");
         this.camera.current.control("setCountdown", {
           time: number - blocknumber,
-          blockTime: BLOCKTIME,
+          blockTime: BLOCKTIME
         });
         this.installBlockListener(number, provider);
       } else {
@@ -644,19 +644,19 @@ class Wallet extends Component {
   checkBalances = async () => {
     const l1Balance = await checkL1Balance(
       this.addStatusMessage,
-      this.selectedAddress,
+      this.selectedAddress
     );
     const l2Balance = await checkL2Balance(
       this.addStatusMessage,
-      this.selectedAddress,
+      this.selectedAddress
     );
     this.setState({
       l1Balance: l1Balance,
       l2Balance: l2Balance,
       depositValue: bigIntMax(
         ethers.parseEther("0.01"),
-        ethers.parseEther("0.01") - l2Balance,
-      ),
+        ethers.parseEther("0.01") - l2Balance
+      )
     });
   };
 
@@ -720,7 +720,7 @@ class Wallet extends Component {
                 this.setState({
                   depositValue:
                     (BigInt(evt.target.value) * this.state.l1Balance) /
-                    BigInt(100),
+                    BigInt(100)
                 })
               }
             />
@@ -791,13 +791,13 @@ class Wallet extends Component {
             inputs: fun.inputs.map((input, i) => {
               return {
                 ...input,
-                key: sig + "i" + i,
+                key: sig + "i" + i
               };
             }),
             outputs: fun.outputs,
             stateMutability: fun.stateMutability,
-            type: fun.type,
-          },
+            type: fun.type
+          }
         ];
       }
     }
