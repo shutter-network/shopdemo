@@ -101,7 +101,7 @@ const StatusMessages = ({ statusMessages }) => {
           <div key={entry.key}>
             <span className="text-gray-600 dark:text-gray-400">{entry.timestamp}</span>
             <span
-              className={"block " + entry.color + " text-gray-800 dark:text-gray-200"}
+              className={"block " + entry.color + " "}
               dangerouslySetInnerHTML={{ __html: entry.msg }}
             ></span>
           </div>
@@ -121,8 +121,8 @@ class Wallet extends Component {
       executions: [],
       events: [],
       statusMessage: [],
-      abi: mintable,
-      abiName: "Mintable ERC20",
+      abi: null,
+      abiName: "",
       paused: false,
       l1Balance: 0,
       l2Balance: 0,
@@ -591,7 +591,8 @@ class Wallet extends Component {
                 className="text-blue-600 dark:text-yellow-300">{this.state.block}</span>
               </p>
               <p className="text-sm">Current EonKey is: <span
-                className="text-blue-600 dark:text-yellow-300" title={this.state.eonkey}>{this.state.eonkey.slice(0, 64)}...</span></p>
+                className="text-blue-600 dark:text-yellow-300"
+                title={this.state.eonkey}>{this.state.eonkey.slice(0, 64)}...</span></p>
             </div>
           </div>
 
@@ -642,7 +643,7 @@ class Wallet extends Component {
                 onChange={(e) =>
                   this.setState({ inclusionWindow: parseInt(e.target.value) })
                 }
-                className="border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline"
+                className="border rounded w-full  py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline"
               />
               <p className="text-gray-600 dark:text-gray-400 text-xs italic">
                 You need to sign the transaction before this timer runs out.
@@ -813,7 +814,7 @@ class Wallet extends Component {
         {abifun.inputs.map((funcInput, i) => {
           return (
             <input
-              className="block mx-5 border"
+              className="block mx-5 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 p-2 w-9/12 my-1"
               id={funcInput.key}
               key={funcInput.key}
               type="text"
@@ -856,41 +857,27 @@ class Wallet extends Component {
     return keyed;
   }
 
-  renderAbi(abi: Object) {
+  renderAbiFields(abi: Object) {
     const keyed = this.transformAbiForRender(abi);
     return (
       <>
-        <button
-          className="block btn btn-red m-1 object-right-top"
-          type="btn"
-          onClick={() => (this.overlay.current.style.display = "none")}
-        >
-          X
-        </button>
-        <label htmlFor="abifile" className="m-1">
-          Select ABI
-        </label>
-        <input
-          type="file"
-          id="abifile"
-          onChange={this.handleABIUpload}
-          accept=".json"
-        />
-        <h1 className="text-xl">{this.state.abiName}</h1>
         {keyed.map((entry) => {
           if (entry.type === "function" && entry.stateMutability != "view") {
             return (
-              <div key={entry.name.key} className="block border p-1">
+              <div key={entry.name.key}
+                   className="block border p-4 rounded-lg shadow-md bg-white dark:bg-gray-800 mb-4">
                 <form
                   id={entry.key}
                   key={entry.key}
                   onSubmit={(event) => {
                     this.contractCall(event, abi, entry);
                   }}
+                  className="space-y-2"
                 >
-                  {entry.name.value}({this.renderAbiFun(entry)})
+                  <h2
+                    className="text-lg font-bold text-gray-900 dark:text-white text-left">{entry.name.value}({this.renderAbiFun(entry)})</h2>
                   <button
-                    className="btn block"
+                    className="btn block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-blue-700 dark:hover:bg-blue-600"
                     type="submit"
                     onClick={() =>
                       (this.overlay.current.style.display = "none")
@@ -907,19 +894,62 @@ class Wallet extends Component {
     );
   }
 
+  renderAbi(abi: Object) {
+    return (
+      <>
+        <button
+          className="fixed top-0 right-0 m-4 bg-red-500 text-white rounded-full p-2"
+          type="btn"
+          onClick={() => (this.overlay.current.style.display = "none")}
+        >
+          X
+        </button>
+        <label htmlFor="abifile" className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+          Select ABI
+        </label>
+        <input
+          type="file"
+          id="abifile"
+          onChange={this.handleABIUpload}
+          accept=".json"
+          className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white dark:bg-gray-800 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:text-white dark:border-gray-600"
+        />
+        {this.state.abiName && this.state.abi ?
+          <div className={"mt-10"}>
+            <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{this.state.abiName}</h1>
+            {this.renderAbiFields(abi)}
+          </div>
+          :
+          <div className={"mt-10"}>
+            <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">No ABI specified</h1>
+            <button type={"button"}
+                    className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    onClick={() => {
+                      this.setState({ abi: mintable, abiName: "Mintable ERC-20" });
+                    }}>Use generic erc-20
+            </button>
+          </div>
+        }
+      </>
+    );
+  }
+
   render() {
     return (
-      <div>
-        <div ref={this.recharge} id="recharge">
+      <div className={"pb-40"}>
+        <div ref={this.recharge} className="overlay">
           <div
-            className={"dark:bg-gray-800 bg-gray-100 p-6 rounded-lg shadow-lg w-full md:w-1/2 mx-auto text-center mt-20 mb-20"}>
+            className={"dark:bg-gray-800 bg-gray-100 p-6 rounded-lg shadow-lg w-full md:w-1/2 mx-auto text-center mt-20 mb-40 pb-40"}>
 
             {this.renderRecharge()}
           </div>
 
         </div>
-        <div ref={this.overlay} id="overlay">
-          {this.renderAbi(this.state.abi)}
+        <div ref={this.overlay} className="overlay">
+          <div
+            className={"dark:bg-gray-800 bg-gray-100 p-6 rounded-lg shadow-lg w-full md:w-1/2 mx-auto text-center mt-20 mb-20"}>
+            {this.renderAbi(this.state.abi)}
+          </div>
         </div>
         {this.renderWallet()}
 
