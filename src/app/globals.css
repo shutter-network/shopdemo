@@ -198,3 +198,13 @@ p.ellipsis {
     display: block;
   }
 }
+
+.self-timer-icon {
+  fill: black; /* default color */
+}
+
+@media (prefers-color-scheme: dark) {
+  .self-timer-icon {
+    fill: gray;
+  }
+}

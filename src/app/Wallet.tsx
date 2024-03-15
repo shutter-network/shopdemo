@@ -597,7 +597,7 @@ class Wallet extends Component {
           </div>
 
 
-          <div className={"mt-5"}>
+          <div className={"mt-32"}>
             {this.renderShutter()}
           </div>
         </div>
