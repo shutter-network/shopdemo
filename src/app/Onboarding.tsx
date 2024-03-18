@@ -4,8 +4,8 @@ import L1StandardBridge from "./L1StandardBridge";
 const shopChain = {
   chainId: "0x281b6fc",
   chainName: "SHOP",
-  rpcUrls: ["https://rpc.sepolia.staging.shutter.network"],
-  iconUrls: ["https://demo.sepolia.staging.shutter.network/icon-192.png"],
+  rpcUrls: ["https://rpc.op-sepolia.shutter.network"],
+  iconUrls: ["https://demo.op-sepolia.shutter.network/icon-192.png"],
   nativeCurrency: {
     name: "SHOPeth",
     symbol: "SHOP",

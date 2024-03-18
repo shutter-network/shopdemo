@@ -130,7 +130,7 @@ class Wallet extends Component {
   async setupListener(balance: number) {
     try {
       const websock = await new ethers.WebSocketProvider(
-        "wss://socket.sepolia.staging.shutter.network",
+        "wss://socket.op-sepolia.shutter.network",
       );
       this.listener = websock;
       console.log("Using websocket listener for blocks");
