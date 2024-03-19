@@ -1,4 +1,4 @@
-import React, { Component, createRef, useEffect, useState } from "react";
+import React, { Component, createRef, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ShutterProvider,
@@ -29,16 +29,18 @@ const bigIntMax = (...args) => args.reduce((m, e) => (e > m ? e : m));
 
 const Recharge = ({ l1Balance, l2Balance, onClick }) => {
   const [depositValue, setDepositValue] = useState(0);
-
+  // const [isDepositing, setIsDepositing] = useState(false);
   useEffect(() => {
     setDepositValue((BigInt(1) * BigInt(l1Balance)) / BigInt(100));
   }, [l1Balance]);
 
   return (
-    <div className="p-6 rounded-lg text-center">
+    <div className="p-6 rounded-lg text-center relative">
       <button
-        className="absolute top-0 right-0 m-4 bg-red-500 text-white rounded-full p-2"
-        onClick={() => (document.getElementById("recharge").style.display = "none")}
+        className="absolute -top-10 -right-10 bg-red-500 text-white rounded-full p-2 w-10 h-10"
+        onClick={() => {
+          document.querySelector(".overlay").style.display = "none";
+        }}
       >
         X
       </button>
@@ -80,7 +82,9 @@ const Recharge = ({ l1Balance, l2Balance, onClick }) => {
         </p>
         <button
           className="btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          onClick={() => onClick(depositValue)}
+          onClick={() => {
+            onClick(depositValue);
+          }}
         >
           Deposit {formatEther(depositValue)} Sepolia ETH.
         </button>
@@ -143,6 +147,7 @@ class Wallet extends Component {
     this.recharge = createRef(null);
 
     this.runDeposit = this.runDeposit.bind(this);
+    this.setupListener = this.setupListener.bind(this);
   }
 
   componentDidMount() {
@@ -176,6 +181,7 @@ class Wallet extends Component {
         msg = msg.slice(1);
       }
       statusMessages = [
+        ...statusMessages,
         {
           msg: msg,
           color: color,
@@ -191,8 +197,8 @@ class Wallet extends Component {
             Date.parse(new Date()).toString() +
             "-" +
             [...msg].reduce((s, c) => s + c.charCodeAt(), 0)
-        },
-        ...statusMessages
+        }
+
       ];
       console.log("MSG", msg);
     });
@@ -239,7 +245,7 @@ class Wallet extends Component {
   async setupListener(balance: number) {
     try {
       const websock = await new ethers.WebSocketProvider(
-        "wss://socket.sepolia.staging.shutter.network"
+        "wss://socket.op-sepolia.shutter.network"
       );
       this.listener = websock;
       console.log("Using websocket listener for blocks");
@@ -317,8 +323,13 @@ class Wallet extends Component {
   };
 
   async runDeposit(depositValue) {
-    await switchAndDeposit(depositValue, this.addStatusMessage);
-    this.recharge.current.style.display = "none";
+    try {
+      await switchAndDeposit(depositValue, this.addStatusMessage);
+      // document.querySelector('.overlay').style.display = "none";
+    } catch (err) {
+      console.error(err);
+    }
+
   }
 
   checkReceiverIsContract = async (address) => {
@@ -388,8 +399,8 @@ class Wallet extends Component {
   }
 
   async encryptMessage() {
-    console.log(this.state.l2Balance);
-    if (this.state.l2Balance < ethers.parseEther("0.01")) {
+    console.log(this.state.l2Balance, ethers.parseEther("0.01"));
+    if (this.state.l2Balance < ethers.parseEther("0.001")) {
       this.toggleRecharge();
       return;
     }
@@ -462,7 +473,7 @@ class Wallet extends Component {
     console.log(txhash);
     let receipt = await this.signer.provider.getTransactionReceipt(txhash);
     console.log(receipt);
-    const intf = new ethers.Interface(this.state.abi);
+    const intf = new ethers.Interface(this.state.abi || mintable);
     let events = [];
     receipt.logs.forEach((log) => {
       console.log(log);
@@ -628,11 +639,11 @@ class Wallet extends Component {
       shutterInternalDisplay = "block";
     }
     return (
-      <div className="mb-6 flex">
-        <div className="w-96 flex items-center justify-center mr-12">
+      <div className="mb-6 flex flex-1">
+        <div className="min-w-96 flex items-center justify-center mr-12">
           <Camera ref={this.camera} url="camera-13695.mp3" />
         </div>
-        <div style={{ display: txFormDisplay }} className="flex-1">
+        <div style={{ display: txFormDisplay }} className="flex-1 w-full">
           <form onSubmit={(event) => console.log(event)}
                 className="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div className="mb-4">
@@ -684,33 +695,32 @@ class Wallet extends Component {
             </div>
           </form>
         </div>
-        <div style={{ display: shutterInternalDisplay }}>
+        <div style={{ display: shutterInternalDisplay }}
+             className="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4 flex-1 w-full">
           <label
             htmlFor="encryptedTx"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
             Encrypted Transaction:
           </label>
-          <span
-            type="text"
+          <textarea
             id="encryptedTx"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-          >
-            {this.state.msgHex}
-          </span>
+          value={this.state.msgHex}
+          />
+
           <label
             htmlFor="large-input"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
             Decryption Key:
           </label>
-          <span
+          <input
             type="text"
             id="key"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-          >
-            {this.state.decryptionKey}
-          </span>
+
+           value= {this.state.decryptionKey} />
           <label
             htmlFor="executions-list"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -753,14 +763,14 @@ class Wallet extends Component {
           >
             Decrypted Transaction:
           </label>
-          <span
+          <input
             type="text"
             id="decryptedTx"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-          >
-            {this.state.decrypted}
-          </span>
-          <button type="button" className="btn" onClick={() => this.newTx()}>
+          value={this.state.decrypted}
+          />
+
+          <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-blue-700 dark:hover:bg-blue-600" onClick={() => this.newTx()}>
             New Transaction
           </button>
         </div>

@@ -4,7 +4,7 @@ import addresses from "./addresses";
 import {
   sepoliaChain,
   switchSepoliaNetwork,
-  switchShopNetwork,
+  switchShopNetwork
 } from "./Onboarding";
 
 export async function switchAndDeposit(amount: number, status: Function) {
@@ -18,19 +18,20 @@ export async function switchAndDeposit(amount: number, status: Function) {
       const bridge = new ethers.Contract(
         addresses.L1StandardBridgeProxy,
         L1Bridge.abi,
-        signer,
+        signer
       );
       const gasLimit = 130000;
       const deposit = await bridge.depositETH(130000, "0x54a11e22", {
-        value: amount,
+        value: amount
       });
       await deposit.wait();
 
       console.log("deposit successful");
+      status(".Deposit successful");
       await switchShopNetwork(status);
     } catch (error) {
-      console.log("error on deposit");
-      console.error(error);
+      status(`!deposit failed: ${JSON.stringify(error)}`);
+      throw error
     }
   }
 }
