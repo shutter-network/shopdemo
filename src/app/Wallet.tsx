@@ -90,13 +90,21 @@ const Recharge = ({ l1Balance, l2Balance, onClick }) => {
 };
 
 const StatusMessages = ({ statusMessages }) => {
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(scrollToBottom, [statusMessages]);
+
   return (
     <div
       className="h-40 border-solid border-slate-200 border rounded-lg overflow-auto p-4 mt-4 fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-black transition-colors duration-500">
 
       <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">Terminal Output</h2>
 
-      {statusMessages.map((entry) => {
+      {statusMessages.map((entry, index) => {
         return (
           <div key={entry.key}>
             <span className="text-gray-600 dark:text-gray-400">{entry.timestamp}</span>
@@ -104,6 +112,7 @@ const StatusMessages = ({ statusMessages }) => {
               className={"block " + entry.color + " "}
               dangerouslySetInnerHTML={{ __html: entry.msg }}
             ></span>
+            {index === statusMessages.length - 1 ? <div ref={messagesEndRef} /> : null}
           </div>
         );
       })}
