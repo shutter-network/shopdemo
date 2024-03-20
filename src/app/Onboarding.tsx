@@ -34,14 +34,14 @@ export const sepoliaChain = {
 export async function checkL1Balance(
   status: Function,
   account: address,
-): number {
+): Promise<number> {
   return await checkBalance(sepoliaChain.rpcUrls[0], status, account);
 }
 
 export async function checkL2Balance(
   status: Function,
   account: address,
-): number {
+): Promise<number> {
   return await checkBalance(shopChain.rpcUrls[0], status, account);
 }
 
@@ -49,13 +49,13 @@ async function checkBalance(
   rpc: string,
   status: Function,
   account: address,
-): number {
+): Promise<number> {
   const provider = new JsonRpcProvider(rpc);
   let balance = await provider.getBalance(account);
   return balance;
 }
 
-export async function checkOnboarding(status: Function): boolean {
+export async function checkOnboarding(status: Function): Promise<boolean | undefined> {
   if (!window.ethereum) {
     status("No Wallet provider!");
     return false;
@@ -115,11 +115,17 @@ export async function switchSepoliaNetwork(status: Function) {
   const currentChain = await window.ethereum.request({ method: "eth_chainId" });
   if (currentChain != sepoliaChain.chainId) {
     status("Trying to switch to Sepolia network, please allow in wallet.");
-    return await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: sepoliaChain.chainId }],
-    });
-    status("Ready.");
+    try {
+      return await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: sepoliaChain.chainId }],
+      });
+    } catch (error) {
+      status("!switching to Sepolia network failed:", JSON.stringify(error));
+      console.error(error);
+      return false;
+    }
+
   }
 }
 

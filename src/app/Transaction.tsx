@@ -165,8 +165,22 @@ class Transaction extends Component {
     return (
       <div>
         <div className="grid grid-cols-8">
-          <label htmlFor="txto" className="col-span-8">
+          <label htmlFor="txto" className="col-span-8 mb-1">
             {this.state.receiverIsContract ? "Contract:" : "Receiver:"}
+            <button
+              className="btn  float-right px-2 py-1 text-xs"
+              type="btn"
+              disabled={!this.state.receiverIsContract}
+              onClick={(evt) => {
+                evt.preventDefault();
+                this.overlay.current.style.display = "block";
+              }}
+              style={{
+                display: this.state.receiverIsContract ? "inline-block" : "none"
+              }}
+            >
+              Use ABI
+            </button>
           </label>
           <input
             type="input"
@@ -175,22 +189,9 @@ class Transaction extends Component {
             value={this.state.txto}
             required
             onChange={this.txToChanged}
-            className="col-span-7 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
+            className="col-span-8 p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
           />
-          <button
-            className="btn col-span-1"
-            type="btn"
-            disabled={!this.state.receiverIsContract}
-            onClick={(evt) => {
-              evt.preventDefault();
-              this.overlay.current.style.display = "block";
-            }}
-            style={{
-              display: this.state.receiverIsContract ? "inline-block" : "none",
-            }}
-          >
-            Use ABI
-          </button>
+
           <span className="h-6 col-span-8 text-red-400">
             {this.state.txToMsg}
           </span>

@@ -3,9 +3,10 @@ import React, {
   useState,
   useEffect,
   useRef,
-  forwardRef,
+  forwardRef
 } from "react";
 import makeBlockiesUrl from "blockies-react-svg/dist/es/makeBlockiesUrl.mjs";
+import { SelfTimerIcon } from "./SelfTimerIcon";
 
 const useAudio = (url) => {
   const [audio] = useState(new Audio(url));
@@ -48,9 +49,9 @@ const Camera = forwardRef((props, ref) => {
         "0x4200000000000000000000000000000000000066",
         size,
         caseSensitive,
-        scale,
+        scale
       ) +
-      ") no-repeat center",
+      ") no-repeat center"
   });
 
   const trigger = () => {
@@ -74,7 +75,7 @@ const Camera = forwardRef((props, ref) => {
     setMotive({
       ...motive,
       filter: "blur(0) saturate(100%)",
-      background: "rgb(0, 0, 0)",
+      background: "rgb(0, 0, 0)"
     });
   };
 
@@ -85,7 +86,7 @@ const Camera = forwardRef((props, ref) => {
       background:
         "url(" +
         makeBlockiesUrl(address, size, caseSensitive, scale) +
-        ") no-repeat center",
+        ") no-repeat center"
     });
   };
   const setBlurred = () => {
@@ -98,9 +99,9 @@ const Camera = forwardRef((props, ref) => {
           "0x4200000000000000000000000000000000000066",
           size,
           caseSensitive,
-          scale,
+          scale
         ) +
-        ") no-repeat center",
+        ") no-repeat center"
     });
   };
   const setFocus = () => {
@@ -114,9 +115,9 @@ const Camera = forwardRef((props, ref) => {
           "0x4200000000000000000000000000000000000066",
           size,
           caseSensitive,
-          scale,
+          scale
         ) +
-        ") no-repeat center",
+        ") no-repeat center"
     });
     setFocussed(true);
     toggleBeep();
@@ -160,7 +161,7 @@ const Camera = forwardRef((props, ref) => {
         default:
           console.log("empty cmd");
       }
-    },
+    }
   }));
 
   return (
@@ -177,12 +178,9 @@ const Camera = forwardRef((props, ref) => {
         }
       ></span>
       <span className="camera-control">
-        <img
-          className={inactive ? "self-timer inactive" : "self-timer"}
-          src="self-timer-icon.svg"
-          width="25px"
-          height="25px"
-        />
+        <div className={"w-6"}>
+        <SelfTimerIcon className={`${inactive ? "self-timer inactive" : "self-timer"}`} />
+        </div>
       </span>
       <span className="camera-control">
         {counter > 0 ? parseInt(counter) + "s" : ""}
