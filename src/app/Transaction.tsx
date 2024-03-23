@@ -20,7 +20,7 @@ class Transaction extends Component {
       txToValid: null,
       txvalue: 1,
       txValueInput: "1",
-      txValueValid: null,
+      txValueValid: true,
       txValueMsg: "",
       txValueDisplayWei: true,
       txdata: "",
@@ -144,13 +144,16 @@ class Transaction extends Component {
       return;
     }
     let valueInput = this.state.txValueInput;
-    if (this.state.txValueDisplayWei) {
-      // change to ETH display
-      valueInput = ethers.formatUnits(this.state.txvalue, 18);
-    } else {
-      // change to wei display
-      valueInput = ethers.formatUnits(this.state.txvalue, 0);
+    if(valueInput !== "") {
+      if (this.state.txValueDisplayWei) {
+        // change to ETH display
+        valueInput = ethers.formatUnits(this.state.txvalue, 18);
+      } else {
+        // change to wei display
+        valueInput = ethers.formatUnits(this.state.txvalue, 0);
+      }
     }
+
     this.txvalue.current.style.borderColor = "";
     this.txvalue.current.style.backgroundColor = "rgba(0, 255, 0, 0.25)";
     this.setState({
