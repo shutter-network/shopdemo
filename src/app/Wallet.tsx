@@ -110,7 +110,7 @@ const StatusMessages = ({ statusMessages }) => {
 
       {statusMessages.map((entry, index) => {
         return (
-          <div key={entry.key}>
+          <div key={entry.key + index}>
             <span className="text-gray-600 dark:text-gray-400">{entry.timestamp}</span>
             <span
               className={"block " + entry.color + " "}
@@ -259,7 +259,9 @@ class Wallet extends Component {
         this.listener.getBalance(this.selectedAddress).then((newbalance) => {
           if (newbalance && newbalance != balance) {
             // tx form needs to be rendered for this to work:
+            if(this.txform?.current) {
             this.txform.current.setState({ availableBalance: newbalance });
+            }
             balance = newbalance;
             // FIXME: state changes here are swallowed
             () => this.setState({ l2Balance: balance });
@@ -399,71 +401,95 @@ class Wallet extends Component {
   }
 
   async encryptMessage() {
+
     console.log(this.state.l2Balance, ethers.parseEther("0.01"));
     if (this.state.l2Balance < ethers.parseEther("0.001")) {
       this.toggleRecharge();
       return;
     }
     const txstate = this.txform.current.state;
+    console.log("txstate", txstate);
+    if (!txstate.txToValid) {
+      this.addStatusMessage("!Please fill out a receiver.");
+      return;
+    }
+
+    if (!txstate.txValueValid) {
+      this.addStatusMessage("!Please fill out a value.");
+      return;
+    }
+
     if (!this.signer) {
       return;
     }
-    if (txstate.txvalue > Number.MAX_SAFE_INTEGER) {
-      this.addStatusMessage(
-        "'value' too big to handle, changing to maximum amount"
-      );
-      this.txform.current.setState({
-        txvalue: BigInt(Number.MAX_SAFE_INTEGER)
-      });
-      txstate.txvalue = BigInt(Number.MAX_SAFE_INTEGER);
+
+    let value: string;
+
+    if(txstate.txValueDisplayWei) {
+      value = (txstate.txvalue.toString())
     }
+    else {
+      value = (ethers.parseEther(txstate.txValueInput).toString())
+    }
+
     let txRequest = {
       from: this.state.selectedAddress,
       to: txstate.txto,
-      value: Number(txstate.txvalue),
+      value: value,
       data: txstate.txdata
     };
+
     await this.setState({ msgHex: JSON.stringify(txRequest) });
 
     this.runEncryptor();
 
-    const [msg, txResponse, executionBlock] =
-      await this.signer._sendTransactionTrace(
-        txRequest,
-        this.state.inclusionWindow,
+    this.addStatusMessage("Sending transaction to Shutter Network...");
+    try {
+      this.setState({ submitted: true });
+      const [msg, txResponse, executionBlock] =
+        await this.signer._sendTransactionTrace(
+          txRequest,
+          this.state.inclusionWindow,
+          this.listener
+        );
+      this.camera.current.control("setBlur");
+      await executionBlock;
+
+      if (!executionBlock) {
+        console.err("executionBlock not resolved");
+        return;
+      }
+      const exeListener = this.installBlockListener(
+        executionBlock,
         this.listener
       );
-    this.camera.current.control("setBlur");
-    await executionBlock;
 
-    if (!executionBlock) {
-      console.err("executionBlock not resolved");
-      return;
-    }
-    const exeListener = this.installBlockListener(
-      executionBlock,
+      let tx = await txResponse;
       this.listener
-    );
+        .waitForTransaction(tx.hash)
+        .then((value) => {
+          if (value.blockNumber < executionBlock && value.status == 1) {
+            console.log(value.hash);
+            this.camera.current.control("setFocus");
+          } else {
+            console.log("Inbox tx failed/too late!", value);
+            this.addStatusMessage("Inbox tx failed/too late!");
+            this.camera.current.control("unsetMotive");
+          }
 
-    let tx = await txResponse;
-    this.listener
-      .waitForTransaction(tx.hash)
-      .then((value) => {
-        if (value.blockNumber < executionBlock && value.status == 1) {
-          console.log(value.hash);
-          this.camera.current.control("setFocus");
-        } else {
-          console.log("Inbox tx failed/too late!", value);
-          this.addStatusMessage("Inbox tx failed/too late!");
-          this.camera.current.control("unsetMotive");
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    const msgHex = Buffer.from(msg).toString("hex");
-    console.log("encryptedHex", msgHex);
-    this.setState({ msg: msg, msgHex: msgHex });
+          this.setState({ submitted: false });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      const msgHex = Buffer.from(msg).toString("hex");
+      console.log("encryptedHex", msgHex);
+      this.setState({ msg: msg, msgHex: msgHex });
+    } catch (error) {
+      console.error(error);
+      this.setState({ submitted: false });
+      this.addStatusMessage("!Transaction failed: " + error.message);
+    }
   }
 
   async decodeShopReceipt(blocknumber: number) {
@@ -628,6 +654,7 @@ class Wallet extends Component {
   renderShutter() {
     const phase1 = this.signer && !this.state.msgHex;
     const phase2 = this.signer && this.state.msgHex;
+
     let txFormDisplay = "none";
     let shutterInternalDisplay = "none";
     if (phase1) {
@@ -638,6 +665,8 @@ class Wallet extends Component {
       txFormDisplay = "none";
       shutterInternalDisplay = "block";
     }
+
+    console.log('submitted', this.state.submitted);
     return (
       <div className="mb-6 flex flex-1">
         <div className="min-w-96 flex items-center justify-center mr-12">
@@ -706,7 +735,7 @@ class Wallet extends Component {
           <textarea
             id="encryptedTx"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-          value={this.state.msgHex}
+            value={this.state.msgHex}
           />
 
           <label
@@ -720,7 +749,7 @@ class Wallet extends Component {
             id="key"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
 
-           value= {this.state.decryptionKey} />
+            value={this.state.decryptionKey} />
           <label
             htmlFor="executions-list"
             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -767,12 +796,17 @@ class Wallet extends Component {
             type="text"
             id="decryptedTx"
             className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 text-wrap break-words"
-          value={this.state.decrypted}
+            value={this.state.decrypted}
           />
 
-          <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-blue-700 dark:hover:bg-blue-600" onClick={() => this.newTx()}>
-            New Transaction
-          </button>
+          <div>
+            {this.state.submitted ? ("waiting for decryption key") : <button type="button"
+                                                                              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline dark:bg-blue-700 dark:hover:bg-blue-600 mt-2"
+                                                                              onClick={() => this.newTx()}>
+              New Transaction
+            </button>}
+          </div>
+
         </div>
       </div>
     );
